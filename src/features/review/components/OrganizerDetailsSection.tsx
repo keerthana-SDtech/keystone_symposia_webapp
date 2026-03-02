@@ -9,7 +9,7 @@ export function OrganizerDetailsSection({ concept }: OrganizerDetailsSectionProp
   return (
     <div id="organizer" className="scroll-mt-8">
       <h3 className="text-lg font-bold text-slate-800 mb-4">Organizer Details</h3>
-      <div className="flex items-center gap-12 p-6 rounded-xl border border-slate-200 bg-white">
+      <div className="flex justify-between items-center w-full p-6 px-10 rounded-xl border border-slate-200 bg-white">
         {/* Name Item */}
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-[#FAFAFA] border border-slate-100 flex items-center justify-center shrink-0">
