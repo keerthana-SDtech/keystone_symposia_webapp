@@ -1,0 +1,10 @@
+{
+    "name": "Keystone Symposia",
+    "logo": "/logo.svg",
+    "logoWidth": "auto",
+    "logoHeight": "30px",
+    "colors": {
+        "primary": "#59007F",
+        "primaryForeground": "#ffffff"
+    }
+}
