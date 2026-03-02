@@ -4,6 +4,8 @@ import LoginPage from '../pages/LoginPage'
 import SignupPage from '../pages/SignupPage'
 import SubmissionPage from '../pages/SubmissionPage'
 import DashboardPage from '../pages/DashboardPage'
+import ReviewerDashboardPage from '../pages/ReviewerDashboardPage'
+import ReviewConceptPage from '../pages/ReviewConceptPage'
 import { ProtectedRoute } from './router/ProtectedRoute'
 
 function App() {
@@ -28,6 +30,14 @@ function App() {
               <DashboardPage />
             </ProtectedRoute>
           }
+        />
+        <Route
+          path="/reviewer/dashboard"
+          element={<ReviewerDashboardPage />}
+        />
+        <Route
+          path="/reviewer/review/:conceptId"
+          element={<ReviewConceptPage />}
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
