@@ -30,13 +30,16 @@ export function ConceptOverviewSection({ concept }: ConceptOverviewSectionProps)
         {concept.description || "No description provided."}
       </p>
 
+      {/* Divider */}
+      <div className="w-full h-px bg-slate-200 my-8" />
+
       {/* Embedded Institute Component */}
       <div className="flex items-start gap-4">
         <div className="w-12 h-12 rounded-xl bg-[#F8FAFC] flex items-center justify-center border border-slate-100 shrink-0">
           <GraduationCap className="w-6 h-6 text-slate-500" strokeWidth={1.5} />
         </div>
         <div className="flex flex-col mt-1">
-          <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Institute</span>
+          <span className="text-xs font-medium text-slate-500">Institute</span>
           <span className="text-base font-semibold text-slate-800">{concept.institute || "Not specified"}</span>
         </div>
       </div>

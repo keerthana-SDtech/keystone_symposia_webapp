@@ -39,7 +39,11 @@ export default function ReviewConceptPage() {
             </span>
           </div>
 
-          <Button className="bg-[#58008e] hover:bg-[#4a0078] text-white px-6 font-medium rounded-md">
+          <Button 
+            type="button"
+            className="bg-[#58008e] hover:bg-[#4a0078] text-white px-6 font-medium rounded-md"
+            onClick={() => navigate(`/reviewer/review/${concept.id}/submit`)}
+          >
             Submit Review
           </Button>
         </div>

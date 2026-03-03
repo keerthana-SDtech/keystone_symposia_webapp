@@ -23,7 +23,7 @@ export function SidebarNav({ className, items, activeItem, title = "Sections", o
             <a
               key={item.href}
               href={item.href}
-              onClick={(e) => {
+              onClick={() => {
                  if (onItemClick) {
                    onItemClick(item.href)
                  }

@@ -47,13 +47,13 @@ export function ConceptOverviewTab({ concept }: ConceptOverviewTabProps) {
           <ConceptOverviewSection concept={concept} />
         </div>
         
-        <div className="w-full h-px bg-slate-200" />
+        <div className="mx-10 lg:mx-14 h-px bg-slate-200" />
         
         <div className="px-10 lg:px-14">
           <OrganizerDetailsSection concept={concept} />
         </div>
 
-        <div className="w-full h-px bg-slate-200" />
+        <div className="mx-10 lg:mx-14 h-px bg-slate-200" />
         
         <div className="px-10 lg:px-14">
           <ConferenceRationaleSection concept={concept} />

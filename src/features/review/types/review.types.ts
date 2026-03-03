@@ -16,4 +16,13 @@ export interface ConceptReviewType {
   organizerEmail?: string;
   rationaleQuestions?: RationaleQuestion[];
   generalComments?: string;
+  reviews?: CompletedReviewType[];
+}
+
+export interface CompletedReviewType {
+  id: string;
+  reviewerName: string;
+  relevance: string;
+  scientificQuality: string;
+  comments: string;
 }
