@@ -15,6 +15,13 @@ let MOCK_USERS = [
         name: "Prof. John Doe",
         role: "keystone_member" as const,
         password: "password123"
+    },
+    {
+        id: "3",
+        email: "reviewer@keystone.org",
+        name: "Dr. Alex Johnson",
+        role: "study_group_reviewer" as const,
+        password: "password123"
     }
 ];
 

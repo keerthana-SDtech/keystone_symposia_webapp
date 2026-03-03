@@ -8,6 +8,8 @@ import ReviewerDashboardPage from '../pages/ReviewerDashboardPage'
 import ReviewConceptPage from '../pages/ReviewConceptPage'
 import SubmitReviewPage from '../pages/SubmitReviewPage'
 import ReviewSubmittedPage from '../pages/ReviewSubmittedPage'
+import OrganizerLandingPage from '../pages/OrganizerLandingPage'
+import SubmitProposalPage from '../pages/SubmitProposalPage'
 import { ProtectedRoute } from './router/ProtectedRoute'
 
 function App() {
@@ -49,6 +51,8 @@ function App() {
           path="/reviewer/review/:conceptId/submitted"
           element={<ReviewSubmittedPage />}
         />
+        <Route path="/organizer" element={<OrganizerLandingPage />} />
+        <Route path="/organizer/proposal/submit" element={<SubmitProposalPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

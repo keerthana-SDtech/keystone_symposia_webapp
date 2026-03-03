@@ -2,6 +2,7 @@ import { Navigate } from "react-router-dom";
 import { AuthLayout } from "../features/auth/components/auth-layout";
 import { LoginForm } from "../features/auth/components/login-form";
 import { useAuthContext } from "../app/providers/useAuthContext";
+import { loginJsonSchema, loginUiSchema } from "../features/json-forms/schemas/auth.schemas";
 
 export default function LoginPage() {
     const { isAuthenticated, user } = useAuthContext();
@@ -14,7 +15,7 @@ export default function LoginPage() {
     }
     return (
         <AuthLayout>
-            <LoginForm />
+            <LoginForm schema={loginJsonSchema} uiSchema={loginUiSchema} />
         </AuthLayout>
     );
 }

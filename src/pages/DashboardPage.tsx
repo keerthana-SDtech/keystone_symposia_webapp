@@ -2,6 +2,14 @@ import { PageShell } from "../components/layout/PageShell";
 import { Button } from "../components/ui/button";
 import { File, Check, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { DASHBOARD_PAGE_CONTENT, DASHBOARD_METRIC_CARDS } from "../features/dashboard/data/dashboardPageData";
+
+const ICON_MAP: Record<string, React.ReactNode> = {
+    "File": <File className="h-5 w-5 text-gray-400 stroke-[1.5]" />,
+    "Check": <Check className="h-5 w-5 text-gray-400 stroke-[1.5]" />,
+    "Loader": <Loader className="h-5 w-5 text-gray-400 stroke-[1.5]" />,
+    "Alert": <span className="text-gray-400 font-semibold text-lg">!</span>,
+};
 
 export default function DashboardPage() {
     const navigate = useNavigate();
@@ -19,69 +27,31 @@ export default function DashboardPage() {
                 {/* Header Section */}
                 <div className="flex items-center justify-between mb-8">
                     <h1 className="text-[28px] font-semibold text-[#111827] tracking-tight">
-                        Concepts
+                        {DASHBOARD_PAGE_CONTENT.pageTitle}
                     </h1>
                     <Button
                         onClick={() => navigate("/submission")}
                         className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-5 rounded-md font-medium text-[14px]"
                     >
-                        Submit Concept
+                        {DASHBOARD_PAGE_CONTENT.button}
                     </Button>
                 </div>
 
                 {/* Metric Cards Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    {/* Card 1 */}
-                    <div className="bg-white rounded-[10px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-gray-200">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="text-[32px] font-semibold text-[#111827] leading-none mb-2">12</h3>
-                                <p className="text-[#6b7280] text-[14px] font-medium">New Concepts</p>
-                            </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#f9fafb]">
-                                <File className="h-5 w-5 text-gray-400 stroke-[1.5]" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 2 */}
-                    <div className="bg-white rounded-[10px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-gray-200">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="text-[32px] font-semibold text-[#111827] leading-none mb-2">43</h3>
-                                <p className="text-[#6b7280] text-[14px] font-medium">SAB Approved</p>
-                            </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#f9fafb]">
-                                <Check className="h-5 w-5 text-gray-400 stroke-[1.5]" />
+                    {DASHBOARD_METRIC_CARDS.map((card) => (
+                        <div key={card.id} className="bg-white rounded-[10px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-gray-200">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="text-[32px] font-semibold text-[#111827] leading-none mb-2">{card.value}</h3>
+                                    <p className="text-[#6b7280] text-[14px] font-medium">{card.label}</p>
+                                </div>
+                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#f9fafb]">
+                                    {ICON_MAP[card.icon]}
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Card 3 */}
-                    <div className="bg-white rounded-[10px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-gray-200">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="text-[32px] font-semibold text-[#111827] leading-none mb-2">10</h3>
-                                <p className="text-[#6b7280] text-[14px] font-medium">Proposal Submitted</p>
-                            </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#f9fafb]">
-                                <Loader className="h-5 w-5 text-gray-400 stroke-[1.5]" />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Card 4 */}
-                    <div className="bg-white rounded-[10px] p-6 shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-gray-200">
-                        <div className="flex justify-between items-start">
-                            <div>
-                                <h3 className="text-[32px] font-semibold text-[#111827] leading-none mb-2">46</h3>
-                                <p className="text-[#6b7280] text-[14px] font-medium">Revision Required</p>
-                            </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#f9fafb]">
-                                <span className="text-gray-400 font-semibold text-lg">!</span>
-                            </div>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
         </PageShell>
