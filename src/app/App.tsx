@@ -4,6 +4,7 @@ import LoginPage from '../pages/LoginPage'
 import SignupPage from '../pages/SignupPage'
 import SubmissionPage from '../pages/SubmissionPage'
 import DashboardPage from '../pages/DashboardPage'
+import SubmissionDetailPage from '../pages/SubmissionDetailPage'
 import { ProtectedRoute } from './router/ProtectedRoute'
 
 function App() {
@@ -26,6 +27,14 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/dashboard/:id"
+          element={
+            <ProtectedRoute>
+              <SubmissionDetailPage />
             </ProtectedRoute>
           }
         />
