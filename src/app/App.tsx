@@ -4,14 +4,11 @@ import LoginPage from '../pages/LoginPage'
 import SignupPage from '../pages/SignupPage'
 import SubmissionPage from '../pages/SubmissionPage'
 import DashboardPage from '../pages/DashboardPage'
-<<<<<<< HEAD
 import SubmissionDetailPage from '../pages/SubmissionDetailPage'
-=======
 import ReviewerDashboardPage from '../pages/ReviewerDashboardPage'
 import ReviewConceptPage from '../pages/ReviewConceptPage'
 import SubmitReviewPage from '../pages/SubmitReviewPage'
 import ReviewSubmittedPage from '../pages/ReviewSubmittedPage'
->>>>>>> study-group
 import { ProtectedRoute } from './router/ProtectedRoute'
 
 function App() {
@@ -21,6 +18,8 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+
+        {/* Protected routes for submitting concepts */}
         <Route
           path="/submission"
           element={
@@ -29,6 +28,8 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* User dashboard */}
         <Route
           path="/dashboard"
           element={
@@ -38,14 +39,16 @@ function App() {
           }
         />
         <Route
-<<<<<<< HEAD
           path="/dashboard/:id"
           element={
             <ProtectedRoute>
               <SubmissionDetailPage />
             </ProtectedRoute>
           }
-=======
+        />
+
+        {/* Reviewer routes */}
+        <Route
           path="/reviewer/dashboard"
           element={<ReviewerDashboardPage />}
         />
@@ -60,8 +63,9 @@ function App() {
         <Route
           path="/reviewer/review/:conceptId/submitted"
           element={<ReviewSubmittedPage />}
->>>>>>> study-group
         />
+
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
