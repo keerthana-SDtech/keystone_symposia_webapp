@@ -1,5 +1,19 @@
 import type { JsonSchema, UISchemaElement } from '@jsonforms/core';
 
+// ─── Enum constants ────────────────────────────────────────────────────────────
+
+export const GENDERS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+export const AFFILIATIONS = ['Academic', 'Industry', 'Government', 'Non-profit', 'Other'];
+export const OCCUPATIONS = [
+  'Professor',
+  'Researcher',
+  'Post-doctoral Fellow',
+  'PhD Student',
+  'Industry Scientist',
+  'Other',
+];
+export const UR_OPTIONS = ['Yes', 'No', 'Prefer not to say'];
+
 // ─── Full JSON Schema ─────────────────────────────────────────────────────────
 
 export const proposalJsonSchema: JsonSchema = {
@@ -21,33 +35,56 @@ export const proposalJsonSchema: JsonSchema = {
     },
 
     // Step 2 – Keynote Address
-    keynoteTitle: { type: 'string', minLength: 1 },
-    keynoteSpeakerName: { type: 'string', minLength: 1 },
-    keynoteSpeakerInstitute: { type: 'string', minLength: 1 },
-    keynoteSpeakerBio: { type: 'string' },
+    keynoteSpeakers: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          keynoteSpeaker: { type: 'string' },
+          institute: { type: 'string' },
+          talkTitle: { type: 'string' },
+          gender: { type: 'string', enum: GENDERS },
+          affiliation: { type: 'string', enum: AFFILIATIONS },
+          occupation: { type: 'string', enum: OCCUPATIONS },
+          ur: { type: 'string', enum: UR_OPTIONS },
+        },
+      },
+    },
 
     // Step 3 – Plenary Session
-    plenarySessionTitle: { type: 'string', minLength: 1 },
-    plenaryTopics: { type: 'string', minLength: 1 },
-    expectedAttendees: { type: 'string' },
+    plenarySessions: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          speakers: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                plenarySessionTitle: { type: 'string' },
+                speakerName: { type: 'string' },
+                institute: { type: 'string' },
+                talkTitle: { type: 'string' },
+                affiliation: { type: 'string', enum: AFFILIATIONS },
+                occupation: { type: 'string', enum: OCCUPATIONS },
+                ur: { type: 'string', enum: UR_OPTIONS },
+              },
+            },
+          },
+        },
+      },
+    },
   },
-  required: [
-    'meetingTitle',
-    'organizers',
-    'keynoteTitle',
-    'keynoteSpeakerName',
-    'keynoteSpeakerInstitute',
-    'plenarySessionTitle',
-    'plenaryTopics',
-  ],
+  required: ['meetingTitle', 'organizers'],
 };
 
 // ─── Per-step field names (for validation scoping) ────────────────────────────
 
 export const PROPOSAL_STEP_FIELDS: string[][] = [
   ['meetingTitle', 'organizers'],
-  ['keynoteTitle', 'keynoteSpeakerName', 'keynoteSpeakerInstitute', 'keynoteSpeakerBio'],
-  ['plenarySessionTitle', 'plenaryTopics', 'expectedAttendees'],
+  ['keynoteSpeakers'],
+  ['plenarySessions'],
 ];
 
 // ─── Per-step UI schemas ───────────────────────────────────────────────────────
@@ -73,62 +110,15 @@ export const proposalStepUiSchemas: UISchemaElement[] = [
 
   // Step 2 – Keynote Address
   {
-    type: 'VerticalLayout',
-    elements: [
-      {
-        type: 'Control',
-        scope: '#/properties/keynoteTitle',
-        label: 'Keynote Title',
-        options: { placeholder: 'Enter keynote session title' },
-      },
-      {
-        type: 'HorizontalLayout',
-        elements: [
-          {
-            type: 'Control',
-            scope: '#/properties/keynoteSpeakerName',
-            label: 'Speaker Name',
-            options: { placeholder: 'Enter speaker name' },
-          },
-          {
-            type: 'Control',
-            scope: '#/properties/keynoteSpeakerInstitute',
-            label: 'Speaker Institute',
-            options: { placeholder: 'Enter speaker institute' },
-          },
-        ],
-      },
-      {
-        type: 'Control',
-        scope: '#/properties/keynoteSpeakerBio',
-        label: 'Speaker Bio',
-        options: { multi: true, placeholder: 'Enter brief speaker bio (optional)' },
-      },
-    ],
+    type: 'Control',
+    scope: '#/properties/keynoteSpeakers',
+    label: 'Keynote Speakers',
   } as any,
 
   // Step 3 – Plenary Session
   {
-    type: 'VerticalLayout',
-    elements: [
-      {
-        type: 'Control',
-        scope: '#/properties/plenarySessionTitle',
-        label: 'Session Title',
-        options: { placeholder: 'Enter plenary session title' },
-      },
-      {
-        type: 'Control',
-        scope: '#/properties/plenaryTopics',
-        label: 'Topics Covered',
-        options: { multi: true, placeholder: 'Describe the key topics to be covered' },
-      },
-      {
-        type: 'Control',
-        scope: '#/properties/expectedAttendees',
-        label: 'Expected Attendees',
-        options: { placeholder: 'Estimated number of attendees (optional)' },
-      },
-    ],
+    type: 'Control',
+    scope: '#/properties/plenarySessions',
+    label: 'Plenary Sessions',
   } as any,
 ];

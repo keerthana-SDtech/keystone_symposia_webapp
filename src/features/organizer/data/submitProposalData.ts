@@ -1,7 +1,7 @@
 export const PROPOSAL_STEPS = [
   { "id": "overview", "label": "Overview" },
   { "id": "keynote-address", "label": "Keynote Address" },
-  { "id": "plenary-session", "label": "Plenary Session" }
+  { "id": "plenary-session", "label": "Plenary Session", "headerLabel": "Plenary Session 1" }
 ];
 
 export const SUBMIT_PROPOSAL_PAGE_CONTENT = {
@@ -12,7 +12,7 @@ export const SUBMIT_PROPOSAL_PAGE_CONTENT = {
     "saveAsDraft": "Save as Draft",
     "back": "Back",
     "next": "Next",
-    "submit": "Submit Proposal"
+    "submit": "Submit"
   }
 };
 

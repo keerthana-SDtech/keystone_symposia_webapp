@@ -12,7 +12,7 @@ interface MultiStepJsonFormProps {
   schema: JsonSchema;
   stepUiSchemas: UISchemaElement[];
   stepFields: string[][];
-  steps: { id: string; label: string }[];
+  steps: { id: string; label: string; headerLabel?: string }[];
   stepIcons?: React.ReactNode[];
   initialData?: Record<string, any>;
   onSubmit: (data: Record<string, any>) => void;
@@ -98,7 +98,7 @@ export function MultiStepJsonForm({
           <div className="flex flex-col gap-7">
             <StepHeader
               icon={stepIcons?.[activeIndex]}
-              title={steps[activeIndex].label}
+              title={steps[activeIndex].headerLabel ?? steps[activeIndex].label}
               step={activeIndex + 1}
               totalSteps={steps.length}
             />

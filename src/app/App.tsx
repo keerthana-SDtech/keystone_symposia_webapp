@@ -10,7 +10,8 @@ import SubmitReviewPage from '../pages/SubmitReviewPage'
 import ReviewSubmittedPage from '../pages/ReviewSubmittedPage'
 import OrganizerLandingPage from '../pages/OrganizerLandingPage'
 import SubmitProposalPage from '../pages/SubmitProposalPage'
-import { ProtectedRoute } from './router/ProtectedRoute'
+import ProposalSubmittedPage from '../pages/ProposalSubmittedPage'
+// import { ProtectedRoute } from './router/ProtectedRoute'
 
 function App() {
   return (
@@ -22,17 +23,17 @@ function App() {
         <Route
           path="/submission"
           element={
-            <ProtectedRoute allowedRoles={['external_scientist', 'keystone_member']}>
+            // <ProtectedRoute allowedRoles={['external_scientist', 'keystone_member']}>
               <SubmissionPage />
-            </ProtectedRoute>
+            // </ProtectedRoute>
           }
         />
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            // <ProtectedRoute>
               <DashboardPage />
-            </ProtectedRoute>
+            // </ProtectedRoute>
           }
         />
         <Route
@@ -53,6 +54,7 @@ function App() {
         />
         <Route path="/organizer" element={<OrganizerLandingPage />} />
         <Route path="/organizer/proposal/submit" element={<SubmitProposalPage />} />
+        <Route path="/organizer/proposal/submitted" element={<ProposalSubmittedPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>

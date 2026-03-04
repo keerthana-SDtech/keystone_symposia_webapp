@@ -14,7 +14,8 @@ export const hasStepErrors = (
     const missing = (err.params as any)?.missingProperty as string | undefined;
     if (missing && stepFieldNames.includes(missing)) return true;
     const field = err.instancePath?.replace(/^\//, '');
-    return field ? stepFieldNames.includes(field) : false;
+    if (!field) return false;
+    return stepFieldNames.some((name) => field === name || field.startsWith(name + '/'));
   });
 
 /**

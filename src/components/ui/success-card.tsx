@@ -8,6 +8,7 @@ interface SuccessCardProps {
   ctaLabel?: string;
   onCta?: () => void;
   className?: string;
+  children?: React.ReactNode;
 }
 
 /**
@@ -20,6 +21,7 @@ export function SuccessCard({
   ctaLabel,
   onCta,
   className,
+  children,
 }: SuccessCardProps) {
   return (
     <div
@@ -40,6 +42,9 @@ export function SuccessCard({
       {subtitle && (
         <p className="text-[14px] text-slate-400 -mt-1">{subtitle}</p>
       )}
+
+      {/* Extra content (e.g. email confirmation box) */}
+      {children}
 
       {/* CTA Button */}
       {ctaLabel && onCta && (

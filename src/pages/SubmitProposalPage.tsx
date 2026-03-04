@@ -36,15 +36,25 @@ export default function SubmitProposalPage() {
             <p className="text-[13px] text-slate-500 mt-1">{c.pageSubtitle}</p>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="flex items-center gap-2 border-slate-300 text-slate-600 text-[13px] h-9"
-            onClick={() => console.log('Download guidelines')}
-          >
-            <Download className="w-4 h-4" />
-            {c.buttons.downloadGuidelines}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex items-center gap-2 text-slate-600 text-[13px] h-9"
+              onClick={() => console.log('Download guidelines')}
+            >
+              <Download className="w-4 h-4" />
+              {c.buttons.downloadGuidelines}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex items-center gap-2 border-slate-300 text-slate-700 text-[13px] h-9"
+              onClick={() => showToast('Draft saved successfully.', 'success')}
+            >
+              {c.buttons.saveAsDraft}
+            </Button>
+          </div>
         </div>
 
         <MultiStepJsonForm
@@ -53,7 +63,11 @@ export default function SubmitProposalPage() {
           stepFields={PROPOSAL_STEP_FIELDS}
           steps={PROPOSAL_STEPS}
           stepIcons={STEP_ICONS}
-          initialData={{ organizers: [{ name: '', institute: '' }] }}
+          initialData={{
+            organizers: [{ name: '', institute: '' }],
+            keynoteSpeakers: [{ keynoteSpeaker: '', institute: '', talkTitle: '', gender: '', affiliation: '', occupation: '', ur: '' }],
+            plenarySessions: [{ speakers: [{ plenarySessionTitle: '', speakerName: '', institute: '', talkTitle: '', affiliation: '', occupation: '', ur: '' }] }],
+          }}
           onSubmit={() => navigate('/organizer/proposal/submitted')}
           onSaveAsDraft={() => showToast('Draft saved successfully.', 'success')}
           nextLabel={c.buttons.next}
