@@ -12,3 +12,8 @@ export interface AuthResponse {
     accessToken: string;
     refreshToken: string;
 }
+
+/** Map backend role string to a frontend UserRole. */
+export function mapBackendRole(role: string): UserRole {
+    return role === 'submitter' ? 'external_scientist' : 'keystone_member';
+}

@@ -11,7 +11,11 @@ import { Label } from "../../../components/ui/label";
 
 import { useTenant } from "../../../app/providers/TenantProvider";
 
-export const LoginForm = () => {
+interface LoginFormProps {
+    variant?: 'external' | 'staff';
+}
+
+export const LoginForm = ({ variant = 'external' }: LoginFormProps) => {
     const { login, isLoading, error } = useAuth();
     const { name, logo, logoWidth, logoHeight } = useTenant();
 
@@ -95,9 +99,11 @@ export const LoginForm = () => {
                             Remember Me
                         </Label>
                     </div>
-                    <Link to="/forgot-password" className="text-[14px] font-medium text-primary hover:underline">
-                        Forget Password?
-                    </Link>
+                    {variant === 'external' && (
+                        <Link to="/forgot-password" className="text-[14px] font-medium text-primary hover:underline">
+                            Forget Password?
+                        </Link>
+                    )}
                 </div>
 
                 <Button
@@ -108,12 +114,14 @@ export const LoginForm = () => {
                     {isLoading ? "Logging in..." : "Login"}
                 </Button>
 
-                <p className="text-center text-[14px] text-[#374151] mt-6">
-                    Don't have an account?{" "}
-                    <Link to="/signup" className="text-primary font-medium hover:underline">
-                        Sign Up
-                    </Link>
-                </p>
+                {variant === 'external' && (
+                    <p className="text-center text-[14px] text-[#374151] mt-6">
+                        Don't have an account?{" "}
+                        <Link to="/signup" className="text-primary font-medium hover:underline">
+                            Sign Up
+                        </Link>
+                    </p>
+                )}
             </form>
         </div>
     );
