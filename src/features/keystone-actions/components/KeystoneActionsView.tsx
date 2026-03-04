@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getSubmissionDetail } from "../api/mockData";
+import { getConceptDetail, submitConcept, shortlistConcept, bankConcept, rejectConcept } from "../api/conceptApi";
 import type { SubmissionDetail } from "../types";
 import { ActionHeader } from "./ActionHeader";
 import { Sidebar } from "./Sidebar";
@@ -16,11 +16,12 @@ export const KeystoneActionsView = ({ id }: { id: string }) => {
     const [loading, setLoading] = useState(true);
     const [activeSection, setActiveSection] = useState("Concept Overview");
     const [showToast, setShowToast] = useState(false);
+    const [actionError, setActionError] = useState<string | null>(null);
     const [isActivityTimelineOpen, setIsActivityTimelineOpen] = useState(false);
 
     useEffect(() => {
         const load = async () => {
-            const data = await getSubmissionDetail(id);
+            const data = await getConceptDetail(id);
             setDetail(data);
             setLoading(false);
         };
@@ -54,32 +55,32 @@ export const KeystoneActionsView = ({ id }: { id: string }) => {
         sections.push("Comments");
     }
 
-    const handleActionSubmit = (type: ActionType, comments: string) => {
+    const handleActionSubmit = async (type: ActionType, comments: string) => {
         const typeToStatus: Record<ActionType, SubmissionStatus> = {
             'Shortlist': 'Shortlisted',
             'Bank': 'Banked',
             'Reject': 'Rejected'
         };
+        const apiFn = { Shortlist: shortlistConcept, Bank: bankConcept, Reject: rejectConcept }[type];
 
-        const updatedStatus = typeToStatus[type];
-
-        setDetail((prev) => {
-            if (!prev) return prev;
-
-            const updatedSections = { ...prev.sections };
-            if (comments) {
-                updatedSections['Comments'] = { comment: comments };
-            }
-
-            return {
-                ...prev,
-                status: updatedStatus,
-                sections: updatedSections
-            };
-        });
-
-        setShowToast(true);
-        setTimeout(() => setShowToast(false), 3000);
+        setActionError(null);
+        try {
+            // Ensure concept is in 'submitted' stage before review actions
+            try { await submitConcept(id); } catch { /* already submitted — proceed */ }
+            await apiFn(id, comments);
+            const updatedStatus = typeToStatus[type];
+            setDetail((prev) => {
+                if (!prev) return prev;
+                const updatedSections = { ...prev.sections };
+                if (comments) updatedSections['Comments'] = { comment: comments };
+                return { ...prev, status: updatedStatus, sections: updatedSections };
+            });
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 3000);
+        } catch (err: any) {
+            const msg = err?.response?.data?.message ?? `Failed to ${type.toLowerCase()} concept`;
+            setActionError(msg);
+        }
     };
 
     const handleSectionSelect = (section: string) => {
@@ -120,6 +121,15 @@ export const KeystoneActionsView = ({ id }: { id: string }) => {
                 />
                 <SubmissionContent detail={detail} />
             </div>
+
+            {actionError && (
+                <div className="fixed bottom-6 right-6 bg-red-50 text-red-800 border border-red-200 rounded-md p-4 shadow-lg flex items-center justify-between min-w-[300px]">
+                    <span className="text-[14px] font-medium">{actionError}</span>
+                    <button onClick={() => setActionError(null)} className="text-gray-400 hover:text-gray-600 ml-4">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            )}
 
             {showToast && (
                 <div className="fixed bottom-6 right-6 bg-green-50 text-green-800 border border-green-200 rounded-md p-4 shadow-lg flex items-center justify-between min-w-[300px] animate-in slide-in-from-bottom-5">

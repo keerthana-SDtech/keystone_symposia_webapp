@@ -1,12 +1,14 @@
 import { ChevronDown, GraduationCap, User, Mail } from "lucide-react";
 import type { SubmissionDetail } from "../types";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface SubmissionContentProps {
     detail: SubmissionDetail;
 }
 
 export const SubmissionContent = ({ detail }: SubmissionContentProps) => {
+    const navigate = useNavigate();
     // Accordion state for Rationale form section
     const [openAccordion, setOpenAccordion] = useState<string | null>(
         "Why is it important for this conference/topic to be included in the portfolio?"
@@ -35,7 +37,10 @@ export const SubmissionContent = ({ detail }: SubmissionContentProps) => {
                             {detail.category}
                         </div>
                     </div>
-                    <button className="text-[14px] font-medium text-[#581585] hover:text-[#47116b] transition-colors">
+                    <button
+                        onClick={() => navigate(`/dashboard/${detail.id}/edit`)}
+                        className="text-[14px] font-medium text-[#581585] hover:text-[#47116b] transition-colors"
+                    >
                         Edit
                     </button>
                 </div>

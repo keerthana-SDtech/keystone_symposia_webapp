@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthContext } from '../../../app/providers/useAuthContext';
 import { useSubmissionsQuery } from '../hooks/useSubmissionsQuery';
 import { SubmissionsTable } from './SubmissionsTable';
@@ -8,10 +8,14 @@ import type { SortOption, FilterParams } from '../types';
 export const DashboardView = () => {
     const { user } = useAuthContext();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const [sortOption, setSortOption] = useState<SortOption>(null);
     const [filterParams, setFilterParams] = useState<FilterParams>({});
 
-    const { data, isLoading } = useSubmissionsQuery(user?.role, sortOption, filterParams);
+    const cycleId = searchParams.get('cycleId') ?? undefined;
+    const stage = searchParams.get('stage') ?? undefined;
+
+    const { data, isLoading } = useSubmissionsQuery(user?.role, sortOption, filterParams, cycleId, stage);
 
     if (!user) return null;
 
