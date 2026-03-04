@@ -1,3 +1,9 @@
+export interface BulkResult {
+    created: number;
+    failed: number;
+    errors: { row: number; reason: string }[];
+}
+
 export interface BulkUploadState {
     file: File | null;
     isUploading: boolean;
@@ -6,4 +12,5 @@ export interface BulkUploadState {
     isDownloadingTemplate: boolean;
     isSubmittingBulk: boolean;
     bulkSuccess: boolean;
+    bulkResult: BulkResult | null;
 }
