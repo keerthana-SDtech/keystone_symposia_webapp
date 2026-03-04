@@ -12,7 +12,12 @@ import {
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
-export const Header = () => {
+interface HeaderProps {
+    /** Override the header background colour. Defaults to #4a4a4a (dark). */
+    bg?: string;
+}
+
+export const Header = ({ bg }: HeaderProps = {}) => {
     const { name, logo, logoWidth, logoHeight } = useTenant();
     const { user, logout } = useAuthContext();
     const navigate = useNavigate();
@@ -23,7 +28,10 @@ export const Header = () => {
     };
 
     return (
-        <header className="flex justify-between items-center px-8 lg:px-12 py-[18px] bg-[#4a4a4a] sticky top-0 z-50 w-full shrink-0">
+        <header
+            className="flex justify-between items-center px-8 lg:px-12 py-[18px] sticky top-0 z-50 w-full shrink-0"
+            style={{ backgroundColor: bg ?? '#4a4a4a' }}
+        >
             <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
                 <img src={logo} alt={name} style={{ width: logoWidth, height: logoHeight }} className="object-contain" />
             </div>
