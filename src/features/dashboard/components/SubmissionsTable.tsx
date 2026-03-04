@@ -13,38 +13,39 @@ import type { SubmissionsTableProps } from '../types';
 export const SubmissionsTable = ({
     title,
     submissions,
+    total,
     metrics,
     loading,
     navigationBasePath,
     submitButton,
     searchPlaceholder = 'Search',
     showMetrics = true,
-    batchSize = 20,
     accessRestriction,
     sortOption,
     onSortSelect,
     filterParams,
     onFilterChange,
+    search,
+    onSearchChange,
+    selectedMetric,
+    onMetricClick,
+    onMetricClear,
+    hasMore,
+    isFetchingNextPage,
+    fetchNextPage,
 }: SubmissionsTableProps) => {
     const navigate = useNavigate();
     const [filterOpen, setFilterOpen] = useState(false);
 
-    const {
-        searchTerm,
-        setSearchTerm,
-        selectedMetric,
-        setSelectedMetric,
-        filteredSubmissions,
-        visibleRows,
-        hasMore,
-        sentinelRef,
-    } = useSubmissionsTable({ submissions, batchSize });
+    const { sentinelRef } = useSubmissionsTable({ hasMore, fetchNextPage });
 
     const filterActive = !!(
         filterParams.dateFrom ||
         filterParams.dateTo ||
         (filterParams.statuses?.length ?? 0) > 0
     );
+
+    const displayTotal = total ?? submissions.length;
 
     // ── Guards ────────────────────────────────────────────────────────────────
 
@@ -86,20 +87,20 @@ export const SubmissionsTable = ({
                 {selectedMetric ? (
                     <div className="flex items-center gap-2 mb-8 mt-2">
                         <button
-                            onClick={() => setSelectedMetric(null)}
+                            onClick={onMetricClear}
                             aria-label="Back"
                             className="text-gray-500 hover:text-gray-900 transition-colors p-1 -ml-2 rounded-full hover:bg-gray-100"
                         >
                             <ChevronLeft className="h-6 w-6 stroke-[1.5]" />
                         </button>
                         <h1 className="text-[28px] font-medium text-[#111827] tracking-tight leading-none">
-                            {selectedMetric.title} ({filteredSubmissions.length})
+                            {selectedMetric.title} ({displayTotal})
                         </h1>
                     </div>
                 ) : (
                     <div className="flex items-center justify-between mb-8">
                         <h1 className="text-[28px] font-semibold text-[#111827] tracking-tight">
-                            {title} ({submissions.length})
+                            {title} ({displayTotal})
                         </h1>
                         {submitButton && (
                             <Button
@@ -114,7 +115,7 @@ export const SubmissionsTable = ({
 
                 {/* Metric cards */}
                 {showMetrics && !selectedMetric && metrics.length > 0 && (
-                    <MetricCards metrics={metrics} onMetricClick={setSelectedMetric} />
+                    <MetricCards metrics={metrics} onMetricClick={onMetricClick} />
                 )}
 
                 {/* Table card */}
@@ -123,8 +124,8 @@ export const SubmissionsTable = ({
                     {/* Toolbar */}
                     <div className="p-4 flex items-center justify-between border-b border-gray-200">
                         <SearchBar
-                            value={searchTerm}
-                            onChange={setSearchTerm}
+                            value={search}
+                            onChange={onSearchChange}
                             placeholder={selectedMetric ? `Search in ${selectedMetric.title}...` : searchPlaceholder}
                         />
                         <FilterSort
@@ -148,7 +149,7 @@ export const SubmissionsTable = ({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {visibleRows.map(row => (
+                                {submissions.map(row => (
                                     <tr
                                         key={row.id}
                                         onClick={() => navigate(`${navigationBasePath}/${row.id}`)}
@@ -169,13 +170,13 @@ export const SubmissionsTable = ({
 
                     {/* Infinite scroll sentinel */}
                     <div ref={sentinelRef} className="h-10 flex items-center justify-center" aria-hidden="true">
-                        {hasMore && (
+                        {isFetchingNextPage && (
                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
                         )}
                     </div>
 
                     {/* Empty state */}
-                    {filteredSubmissions.length === 0 && (
+                    {submissions.length === 0 && (
                         <div className="py-12 flex items-center justify-center">
                             <p className="text-gray-500 text-sm">No submissions found.</p>
                         </div>

@@ -1,5 +1,6 @@
 import * as XLSX from "xlsx-js-style";
 import { formBuilderApi } from "../../form-builder/api";
+import { httpClient } from "../../../lib/httpClient";
 
 const THEMES = [
     { bg: "4B286D", fg: "FFFFFF", lightBg: "F0EAF5" }, // Purple
@@ -10,13 +11,13 @@ const THEMES = [
 ];
 
 export const bulkSubmissionApi = {
-    uploadConcept: async (_file: File): Promise<boolean> => {
-        // Mock upload logic
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(true);
-            }, 1000);
+    uploadConcept: async (file: File): Promise<{ created: number; failed: number; errors: { row: number; reason: string }[] }> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const { data } = await httpClient.post('/keystone/concepts/bulk', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
         });
+        return data;
     },
     downloadTemplate: async (): Promise<void> => {
         const config = await formBuilderApi.getConferenceFormConfig();

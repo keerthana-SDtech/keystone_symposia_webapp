@@ -11,6 +11,7 @@ export function useBulkSubmission() {
         isDownloadingTemplate: false,
         isSubmittingBulk: false,
         bulkSuccess: false,
+        bulkResult: null,
     });
 
     const uploadFile = async (file: File) => {
@@ -21,8 +22,8 @@ export function useBulkSubmission() {
 
         setState((prev) => ({ ...prev, isUploading: true, error: null, file }));
         try {
-            await bulkSubmissionApi.uploadConcept(file);
-            setState((prev) => ({ ...prev, isUploading: false, success: true }));
+            const result = await bulkSubmissionApi.uploadConcept(file);
+            setState((prev) => ({ ...prev, isUploading: false, success: true, bulkResult: result }));
         } catch (error) {
             setState((prev) => ({ ...prev, isUploading: false, error: "Upload failed" }));
         }
@@ -47,8 +48,6 @@ export function useBulkSubmission() {
 
         setState((prev) => ({ ...prev, isSubmittingBulk: true, error: null }));
         try {
-            // Mock API submission logic
-            await new Promise((resolve) => setTimeout(resolve, 1500));
             setState((prev) => ({ ...prev, bulkSuccess: true }));
             return true;
         } catch (error) {
