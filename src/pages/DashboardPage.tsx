@@ -1,5 +1,5 @@
-import { PageShell } from "../components/layout/PageShell";
 import { DashboardView } from "../features/dashboard";
+import { PageShell } from "../components/layout/PageShell";
 
 export default function DashboardPage() {
     return (

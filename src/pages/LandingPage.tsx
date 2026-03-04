@@ -3,6 +3,7 @@ import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { useTenant } from "../app/providers/TenantProvider";
 import { LANDING_PAGE_CONTENT, LANDING_PAGE_FEATURES } from "../features/landing/data/landingPageData";
+import { useAuthContext } from "../app/providers/useAuthContext";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
     "Focus": <Focus className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
@@ -13,6 +14,8 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 
 export default function LandingPage() {
     const navigate = useNavigate();
+    const { isAuthenticated, user } = useAuthContext();
+
     const { name, logo, logoWidth, logoHeight } = useTenant();
 
     const handleLoginNav = () => {
@@ -48,7 +51,7 @@ export default function LandingPage() {
                         ))}
                     </div>
                     <Button
-                        onClick={handleSubmit}
+                        onClick={handleLoginNav}
                         variant="outline"
                         className="bg-white border border-slate-300 text-slate-800 hover:bg-slate-50 px-6 h-11 text-[14px] font-normal rounded-md"
                     >

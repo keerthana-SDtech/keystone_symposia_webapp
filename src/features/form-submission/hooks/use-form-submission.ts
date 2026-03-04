@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formBuilderApi } from "../../form-builder/api";
-import type { FormConfig } from "../../form-builder/types";
+import type { FormDefinition } from "../../form-builder/types";
 import { httpClient } from "../../../lib/httpClient";
 
 interface CreatedConcept {
@@ -18,7 +18,7 @@ export const useFormSubmission = () => {
         const fetchConfig = async () => {
             try {
                 const data = await formBuilderApi.getConferenceFormConfig();
-                setConfig(data);
+                setDefinition(data);
             } catch {
                 setError("Failed to load form configuration");
             } finally {

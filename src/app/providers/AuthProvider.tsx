@@ -1,18 +1,9 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { User } from '../../features/auth/types';
 import { authApi } from '../../features/auth/api';
 import { tokenStore } from '../../lib/tokenStore';
 import { setAuthFailureHandler } from '../../lib/httpClient';
-
-interface AuthContextType {
-    user: User | null;
-    isAuthenticated: boolean;
-    isLoading: boolean;
-    login: (user: User, accessToken: string, refreshToken: string) => void;
-    logout: () => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { AuthContext } from './AuthContext';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
@@ -27,14 +18,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         const initAuth = async () => {
-            const refreshToken = localStorage.getItem('refreshToken');
-            if (refreshToken) {
+            const accessToken = tokenStore.get();
+            if (accessToken && !tokenStore.isExpired(accessToken)) {
+                // Access token still valid — restore session without a refresh call
                 try {
-                    // authApi.refresh already syncs tokenStore and localStorage internally
-                    const { user: refreshedUser } = await authApi.refresh(refreshToken);
-                    setUser(refreshedUser);
+                    const restoredUser = await authApi.hydrateUser(accessToken);
+                    tokenStore.set(accessToken);
+                    setUser(restoredUser);
                 } catch {
-                    localStorage.removeItem('refreshToken');
+                    tokenStore.clear();
+                }
+            } else {
+                const refreshToken = localStorage.getItem('refreshToken');
+                if (refreshToken) {
+                    try {
+                        const { user: refreshedUser } = await authApi.refresh(refreshToken);
+                        setUser(refreshedUser);
+                    } catch {
+                        tokenStore.clear();
+                        localStorage.removeItem('refreshToken');
+                    }
                 }
             }
             setIsLoading(false);

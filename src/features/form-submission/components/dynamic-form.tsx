@@ -1,19 +1,12 @@
-import { useMemo, forwardRef, useImperativeHandle, useState } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { generateZodSchema } from "../schemas";
-import type { FormConfig, FormField } from "../../form-builder/types";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
-import { Textarea } from "../../../components/ui/textarea";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue
-} from "../../../components/ui/select";
+import { useMemo, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { JsonForms } from '@jsonforms/react';
+import type { ErrorObject } from 'ajv';
+import type { ValidationMode } from '@jsonforms/core';
+import type { FormDefinition } from '../../form-builder/types';
+import { extractUiSchemaFields } from '../../json-forms/utils/extract-schema-fields';
+import { isStepValid } from '../../json-forms/utils/step-validation';
+import { customRenderers } from '../../json-forms/renderers/renderers';
+import { Button } from '../../../components/ui/button';
 
 export interface DynamicFormRef {
   validateActiveSection: () => Promise<boolean>;
@@ -30,85 +23,11 @@ interface DynamicFormProps {
   onActiveSectionValidChange?: (isValid: boolean) => void;
 }
 
-const getAutoCompleteValue = (field: FormField, formId?: string) => {
-    const name = field.name.toLowerCase();
-    const type = field.type;
-    const format = field.format || (field.validation as any)?.format;
-
-    // type="password" + login form → "current-password"
-    // type="password" + signup form → "new-password"
-    if (type === 'password' || name.includes('password')) {
-        const isLogin = formId?.toLowerCase().includes('login');
-        const isSignup = formId?.toLowerCase().includes('signup') || formId?.toLowerCase().includes('register');
-
-        if (isLogin) return "current-password";
-        if (isSignup) return "new-password";
-        return name.includes('new') ? 'new-password' : 'current-password';
-    }
-
-    if (format === 'email' || name.includes('email')) {
-        return "email";
-    }
-
-    if (name.includes('first')) {
-        return "given-name";
-    }
-
-    if (name.includes('last')) {
-        return "family-name";
-    }
-
-    return "off";
-};
-
-const extractFieldNames = (section: any): string[] => {
-    let names: string[] = [];
-    if (section.fields) {
-        names = names.concat(section.fields.map((f: any) => f.name));
-    }
-    if (section.subsections) {
-        section.subsections.forEach((sub: any) => {
-            names = names.concat(extractFieldNames(sub));
-        });
-    }
-    return names;
-};
-
-import { useEffect } from "react";
-
-export const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>(({ config, onSubmit, isSubmitting, hideSubmitButton, id, activeSectionId, onActiveSectionValidChange }, ref) => {
-    const schema = useMemo(() => generateZodSchema(config), [config]);
-
-    const defaultValues = useMemo(() => {
-        const defaults: Record<string, any> = {};
-        config.forEach(section => {
-            extractFieldNames(section).forEach(name => {
-                defaults[name] = "";
-            });
-        });
-        return defaults;
-    }, [config]);
-
-    const { register, handleSubmit, control, formState: { errors }, trigger, watch } = useForm({
-        resolver: zodResolver(schema),
-        mode: "onChange",
-        defaultValues
-    });
-
-    const values = watch();
-    const [debouncedValues, setDebouncedValues] = useState<any>({});
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedValues(values);
-        }, 300);
-        return () => clearTimeout(timer);
-    }, [values]);
-
-    // Reset validation display when the active section changes
-    useEffect(() => {
-      setValidationMode('ValidateAndHide');
-    }, [activeSectionId]);
+export const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>(
+  ({ definition, onSubmit, isSubmitting, hideSubmitButton, id, activeSectionId, onActiveSectionValidChange }, ref) => {
+    const [data, setData] = useState<any>({});
+    const [errors, setErrors] = useState<ErrorObject[]>([]);
+    const [validationMode, setValidationMode] = useState<ValidationMode>('ValidateAndHide');
 
     const activeSection = useMemo(
       () => definition.sections.find((s) => s.id === activeSectionId),
@@ -125,14 +44,16 @@ export const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>(({ confi
       return activeSectionFields.filter((f) => allRequired.includes(f));
     }, [activeSectionFields, definition.schema.required]);
 
-        try {
-            const subSchema = (schema as any).pick(pickObj);
-            const result = subSchema.safeParse(debouncedValues);
-            onActiveSectionValidChange(result.success);
-        } catch (e) {
-            console.error(e);
-        }
-    }, [activeSectionId, config, schema, debouncedValues, onActiveSectionValidChange]);
+    // Reset validation display when the active section changes
+    useEffect(() => {
+      setValidationMode('ValidateAndHide');
+    }, [activeSectionId]);
+
+    // Notify parent whether the active section is currently valid
+    useEffect(() => {
+      if (!onActiveSectionValidChange) return;
+      onActiveSectionValidChange(isStepValid(errors, activeSectionFields));
+    }, [errors, activeSectionFields, onActiveSectionValidChange]);
 
     useImperativeHandle(ref, () => ({
       validateActiveSection: async () => {

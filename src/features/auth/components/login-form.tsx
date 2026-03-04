@@ -11,10 +11,12 @@ import { customRenderers } from "../../../features/json-forms/renderers/renderer
 import { useTenant } from "../../../app/providers/TenantProvider";
 
 interface LoginFormProps {
+    schema: JsonSchema;
+    uiSchema: UISchemaElement;
     variant?: 'external' | 'staff';
 }
 
-export const LoginForm = ({ variant = 'external' }: LoginFormProps) => {
+export const LoginForm = ({ schema, uiSchema, variant = 'external' }: LoginFormProps) => {
     const { login, isLoading, error } = useAuth();
     const { name, logo, logoWidth, logoHeight } = useTenant();
 

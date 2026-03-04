@@ -18,8 +18,8 @@ export const useAuth = () => {
             const response = await authApi.login(values);
             setAuthUser(response.user, response.accessToken, response.refreshToken);
             navigate(ROLE_HOME[response.user.role], { replace: true });
-        } catch (err: any) {
-            setError(err.message || "Something went wrong");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Something went wrong");
         } finally {
             setIsLoading(false);
         }
@@ -32,8 +32,8 @@ export const useAuth = () => {
             const response = await authApi.signup(values);
             setAuthUser(response.user, response.accessToken, response.refreshToken);
             navigate(ROLE_HOME[response.user.role], { replace: true });
-        } catch (err: any) {
-            setError(err.message || "Something went wrong");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Something went wrong");
         } finally {
             setIsLoading(false);
         }
