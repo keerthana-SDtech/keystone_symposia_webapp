@@ -10,6 +10,7 @@ import { Button } from '../../../components/ui/button';
 
 export interface DynamicFormRef {
   validateActiveSection: () => Promise<boolean>;
+  submitForm: () => void;
 }
 
 interface DynamicFormProps {
@@ -62,6 +63,10 @@ export const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>(
         setValidationMode('ValidateAndShow');
         const missingRequired = activeSectionRequired.filter((n) => !data[n]);
         return isStepValid(errors, activeSectionFields) && missingRequired.length === 0;
+      },
+      submitForm: () => {
+        setValidationMode('ValidateAndShow');
+        onSubmit(data);
       },
     }));
 

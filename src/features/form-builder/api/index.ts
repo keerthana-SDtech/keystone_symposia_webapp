@@ -10,7 +10,7 @@ export const formBuilderApi = {
                     conferenceTitle: { type: 'string', minLength: 5, maxLength: 100 },
                     description: { type: 'string', minLength: 10, maxLength: 500 },
 
-                    // ── Section 2: Conference & Organizer Details ──────────
+                    // ── Section 2: Organizer Details ──────────────────────
                     institute: {
                         type: 'string',
                         enum: ['IIT Madras', 'Anna University', 'MIT', 'Stanford'],
@@ -94,67 +94,67 @@ export const formBuilderApi = {
                                 label: 'Description',
                                 options: { multi: true, placeholder: 'Enter description' },
                             },
+                            {
+                                type: 'HorizontalLayout',
+                                elements: [
+                                    {
+                                        type: 'Control',
+                                        scope: '#/properties/institute',
+                                        label: 'Institute',
+                                        options: { placeholder: 'Select institute' },
+                                    },
+                                    {
+                                        type: 'Control',
+                                        scope: '#/properties/scientificCategory',
+                                        label: 'Scientific Category',
+                                        options: { placeholder: 'Select category' },
+                                    },
+                                ],
+                            },
                         ],
                     } as any,
                 },
                 {
                     id: 'conference-organizer-details',
-                    label: 'Conference & Organizer Details',
+                    label: 'Organizer Details',
+                    icon: 'user',
                     uischema: {
                         type: 'VerticalLayout',
                         elements: [
                             {
-                                type: 'Control',
-                                scope: '#/properties/institute',
-                                label: 'Institute',
-                                options: { placeholder: 'Select institute' },
-                            },
-                            {
-                                type: 'Control',
-                                scope: '#/properties/scientificCategory',
-                                label: 'Scientific Category',
-                                options: { placeholder: 'Select category' },
-                            },
-                            {
-                                type: 'Group',
-                                label: 'Organizer Details',
+                                type: 'HorizontalLayout',
                                 elements: [
                                     {
-                                        type: 'HorizontalLayout',
-                                        elements: [
-                                            {
-                                                type: 'Control',
-                                                scope: '#/properties/firstName',
-                                                label: 'First Name',
-                                                options: { placeholder: 'Enter first name' },
-                                            },
-                                            {
-                                                type: 'Control',
-                                                scope: '#/properties/lastName',
-                                                label: 'Last Name',
-                                                options: { placeholder: 'Enter last name' },
-                                            },
-                                        ],
+                                        type: 'Control',
+                                        scope: '#/properties/firstName',
+                                        label: 'First Name',
+                                        options: { placeholder: 'Enter first name' },
                                     },
                                     {
-                                        type: 'HorizontalLayout',
-                                        elements: [
-                                            {
-                                                type: 'Control',
-                                                scope: '#/properties/organizerEmail',
-                                                label: 'Email',
-                                                options: { placeholder: 'Enter email' },
-                                            },
-                                            {
-                                                type: 'Control',
-                                                scope: '#/properties/organizerInstitute',
-                                                label: 'Institute',
-                                                options: { placeholder: 'Select institute' },
-                                            },
-                                        ],
+                                        type: 'Control',
+                                        scope: '#/properties/lastName',
+                                        label: 'Last Name',
+                                        options: { placeholder: 'Enter last name' },
                                     },
                                 ],
-                            } as any,
+                            },
+                            {
+                                type: 'HorizontalLayout',
+                                elements: [
+                                    {
+                                        type: 'Control',
+                                        scope: '#/properties/organizerEmail',
+                                        label: 'Email',
+                                        options: { placeholder: 'Enter email' },
+                                    },
+                                    {
+                                        type: 'Control',
+                                        scope: '#/properties/organizerInstitute',
+                                        label: 'Institute',
+                                        options: { placeholder: 'Select institute' },
+                                    },
+                                ],
+                            },
                         ],
                     } as any,
                 },

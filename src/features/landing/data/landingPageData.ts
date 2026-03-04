@@ -9,7 +9,7 @@ export const LANDING_PAGE_CONTENT = {
   },
   "card": {
     "heading": "What is a Conference Concept?",
-    "description": "A conference concept is a proposal for a focused scientific meeting that brings together researchers to advance a specific field. Your submission should articulate the scientific need, timing rationale, and potential impact of the proposed conference."
+    "description": "A proposal for a focused scientific meeting that brings researchers together around an important and timely topic."
   }
 };
 
@@ -18,24 +18,24 @@ export const LANDING_PAGE_FEATURES = [
     "id": "clear-focus",
     "icon": "Focus",
     "title": "Clear Focus",
-    "description": "Define the scientific topic and why it needs dedicated attention now."
+    "description": "Define the specific scientific topic."
   },
   {
     "id": "community-impact",
     "icon": "Users",
     "title": "Community Impact",
-    "description": "Explain how this conference advances the field and benefits."
+    "description": "Explain how it advances the field."
   },
   {
     "id": "timely-relevance",
     "icon": "Clock",
     "title": "Timely Relevance",
-    "description": "Demonstrate why this is the right moment for this conference."
+    "description": "Demonstrate why it matters now."
   },
   {
     "id": "feasibility-clarity",
     "icon": "LayoutDashboard",
     "title": "Feasibility & Clarity",
-    "description": "Show the concept is well-structured and achievable."
+    "description": "Ensure it is structured and achievable."
   }
 ];
