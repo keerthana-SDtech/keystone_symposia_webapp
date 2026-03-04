@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { formBuilderApi } from "../../form-builder/api";
-import type { FormConfig } from "../../form-builder/types";
+import type { FormDefinition } from "../../form-builder/types";
 import { httpClient } from "../../../lib/httpClient";
 
 interface CreatedConcept {
@@ -8,7 +8,7 @@ interface CreatedConcept {
 }
 
 export const useFormSubmission = () => {
-    const [config, setConfig] = useState<FormConfig | null>(null);
+    const [definition, setDefinition] = useState<FormDefinition | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -18,7 +18,7 @@ export const useFormSubmission = () => {
         const fetchConfig = async () => {
             try {
                 const data = await formBuilderApi.getConferenceFormConfig();
-                setConfig(data);
+                setDefinition(data);
             } catch {
                 setError("Failed to load form configuration");
             } finally {
@@ -64,5 +64,5 @@ export const useFormSubmission = () => {
         }
     };
 
-    return { config, isLoading, isSubmitting, isSuccess, setIsSuccess, error, submitForm };
+    return { definition, isLoading, isSubmitting, isSuccess, setIsSuccess, error, submitForm };
 };

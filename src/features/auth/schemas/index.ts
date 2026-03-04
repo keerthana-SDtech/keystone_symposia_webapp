@@ -1,4 +1,8 @@
-import { z } from "zod";
+export interface LoginFormValues {
+    email: string;
+    password: string;
+    rememberMe?: boolean;
+}
 
 export const loginSchema = z.object({
     email: z.string().email("Invalid email address"),

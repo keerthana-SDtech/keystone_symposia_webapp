@@ -1,4 +1,4 @@
-export type UserRole = 'external_scientist' | 'keystone_member';
+export type UserRole = 'external_scientist' | 'keystone_member' | 'study_group_reviewer';
 
 export interface User {
     id: string;

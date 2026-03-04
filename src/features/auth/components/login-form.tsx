@@ -1,35 +1,40 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { loginSchema } from "../schemas";
-import type { LoginFormValues } from "../schemas";
+import { JsonForms } from "@jsonforms/react";
+import type { JsonSchema, UISchemaElement } from "@jsonforms/core";
+import type { ErrorObject } from "ajv";
 import { useAuth } from "../hooks/use-auth";
 import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { Label } from "../../../components/ui/label";
-
+import { customRenderers } from "../../../features/json-forms/renderers/renderers";
 import { useTenant } from "../../../app/providers/TenantProvider";
 
 interface LoginFormProps {
+    schema: JsonSchema;
+    uiSchema: UISchemaElement;
     variant?: 'external' | 'staff';
 }
 
-export const LoginForm = ({ variant = 'external' }: LoginFormProps) => {
+export const LoginForm = ({ schema, uiSchema, variant = 'external' }: LoginFormProps) => {
     const { login, isLoading, error } = useAuth();
     const { name, logo, logoWidth, logoHeight } = useTenant();
 
-    const form = useForm<LoginFormValues>({
-        resolver: zodResolver(loginSchema),
-        defaultValues: {
-            email: "",
-            password: "",
-            rememberMe: false,
-        },
-    });
+    const [data, setData] = useState<Record<string, any>>({ email: "", password: "" });
+    const [errors, setErrors] = useState<ErrorObject[]>([]);
+    const [rememberMe, setRememberMe] = useState(false);
+    const [showErrors, setShowErrors] = useState(false);
 
-    const onSubmit = (values: LoginFormValues) => {
-        login(values);
+    const handleChange = ({ data: newData, errors: newErrors }: { data: any; errors: ErrorObject[] }) => {
+        setData(newData ?? {});
+        setErrors(newErrors ?? []);
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setShowErrors(true);
+        if (errors.length > 0) return;
+        login({ email: data.email, password: data.password, rememberMe });
     };
 
     return (
@@ -53,46 +58,22 @@ export const LoginForm = ({ variant = 'external' }: LoginFormProps) => {
                 </div>
             )}
 
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="space-y-2 flex flex-col items-start">
-                    <Label htmlFor="email" className="text-[14.5px] font-medium text-[#111827]">
-                        Email<span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        autoComplete="email"
-                        placeholder="Enter email"
-                        {...form.register("email")}
-                        className={`h-11 border-gray-200 focus:ring-primary focus:border-primary text-[14.5px] ${form.formState.errors.email ? 'border-red-500' : ''}`}
-                    />
-                    {form.formState.errors.email && (
-                        <p className="text-xs text-red-500">{form.formState.errors.email.message}</p>
-                    )}
-                </div>
-
-                <div className="space-y-2 flex flex-col items-start">
-                    <Label htmlFor="password" className="text-[14.5px] font-medium text-[#111827]">
-                        Password<span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        autoComplete="current-password"
-                        placeholder="Enter password"
-                        {...form.register("password")}
-                        className={`h-11 border-gray-200 focus:ring-primary focus:border-primary text-[14.5px] ${form.formState.errors.password ? 'border-red-500' : ''}`}
-                    />
-                    {form.formState.errors.password && (
-                        <p className="text-xs text-red-500">{form.formState.errors.password.message}</p>
-                    )}
-                </div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <JsonForms
+                    schema={schema}
+                    uischema={uiSchema}
+                    data={data}
+                    renderers={customRenderers}
+                    onChange={handleChange}
+                    validationMode={showErrors ? "ValidateAndShow" : "ValidateAndHide"}
+                />
 
                 <div className="flex items-center justify-between pt-1">
                     <div className="flex items-center space-x-2">
                         <Checkbox
                             id="rememberMe"
-                            onCheckedChange={(checked) => form.setValue("rememberMe", checked as boolean)}
+                            checked={rememberMe}
+                            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
                             className="w-[18px] h-[18px] border-gray-300 rounded-[4px] data-[state=checked]:bg-primary"
                         />
                         <Label htmlFor="rememberMe" className="text-[14px] text-[#374151] cursor-pointer font-normal">

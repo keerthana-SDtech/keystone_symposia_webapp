@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageShell } from "../components/layout/PageShell";
 import { DynamicForm, type DynamicFormRef } from "../features/form-submission/components/dynamic-form";
 import { useFormSubmission } from "../features/form-submission/hooks/use-form-submission";
-import { Loader2, FileText } from "lucide-react";
+import { Loader2, FileText, UserRound } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { cn } from "../lib/utils";
 import { useAuthContext } from "../app/providers/useAuthContext";
@@ -15,9 +15,10 @@ import { Stepper } from "../features/form-submission/components/stepper";
 import { BackgroundDecorations } from "../components/layout/BackgroundDecorations";
 import { SubmissionSuccessView } from "../features/form-submission/components/submission-success-view";
 import { SubmissionFooter } from "../features/form-submission/components/submission-footer";
+import { SUBMISSION_PAGE_CONTENT } from "../features/submission/data/submissionPageData";
 
 export default function SubmissionPage() {
-    const { config, isLoading, isSubmitting, error, isSuccess, submitForm } = useFormSubmission();
+    const { definition, isLoading, isSubmitting, error, isSuccess, submitForm } = useFormSubmission();
     const bulkHook = useBulkSubmission();
     const { user } = useAuthContext();
     const navigate = useNavigate();
@@ -33,20 +34,20 @@ export default function SubmissionPage() {
             <div className="min-h-screen flex items-center justify-center bg-[#f9fafb]">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="h-10 w-10 text-primary animate-spin" />
-                    <p className="text-gray-500 font-medium">Loading form configuration...</p>
+                    <p className="text-gray-500 font-medium">{SUBMISSION_PAGE_CONTENT.loadingText}</p>
                 </div>
             </div>
         );
     }
 
-    if (error || !config) {
+    if (error || !definition) {
         return (
             <PageShell className="flex items-center justify-center bg-[#f9fafb]">
                 <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Error</h2>
-                    <p className="text-gray-600 mb-6">{error || "Something went wrong."}</p>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{SUBMISSION_PAGE_CONTENT.error.heading}</h2>
+                    <p className="text-gray-600 mb-6">{error || SUBMISSION_PAGE_CONTENT.error.fallbackMessage}</p>
                     <Button onClick={() => window.location.reload()} className="bg-primary hover:bg-primary/90">
-                        Retry
+                        {SUBMISSION_PAGE_CONTENT.error.retryButton}
                     </Button>
                 </div>
             </PageShell>
@@ -56,19 +57,13 @@ export default function SubmissionPage() {
     if (isSuccess) {
         return (
             <SubmissionSuccessView
-                isExternal={user?.role === "external_scientist"}
                 userEmail={user?.email}
-                onReturnToHome={() => navigate("/dashboard")}
                 onSubmitNewConcept={() => window.location.reload()}
-                onViewSubmission={() => { }}
             />
         );
     }
 
-    const sections = config.map((section) => ({
-        id: section.sectionTitle.toLowerCase().replace(/\s+/g, '-'),
-        label: section.sectionTitle
-    }));
+    const sections = definition.sections.map((s) => ({ id: s.id, label: s.label }));
 
     if (!activeSection && sections.length > 0) {
         setActiveSection(sections[0].id);
@@ -86,14 +81,16 @@ export default function SubmissionPage() {
             setAttemptedSteps(prev => [...prev, activeSection]);
         }
 
-        if (!isLastStep) {
-            const isValid = await formRef.current?.validateActiveSection();
-            if (isValid) {
-                if (!completedSteps.includes(activeSection)) {
-                    setCompletedSteps([...completedSteps, activeSection]);
-                }
-                setActiveSection(sections[activeIndex + 1].id);
+        const isValid = await formRef.current?.validateActiveSection();
+        if (!isValid) return;
+
+        if (isLastStep) {
+            formRef.current?.submitForm();
+        } else {
+            if (!completedSteps.includes(activeSection)) {
+                setCompletedSteps([...completedSteps, activeSection]);
             }
+            setActiveSection(sections[activeIndex + 1].id);
         }
     };
 
@@ -104,16 +101,18 @@ export default function SubmissionPage() {
     };
 
     return (
-        <PageShell className="relative pb-24 bg-[#FAFBFD] min-h-screen overflow-hidden">
+        <PageShell className="relative pb-24 bg-[#F4F5F7] min-h-screen overflow-hidden">
             {/* Background circular decorations */}
             <BackgroundDecorations />
 
-            <div className="w-full max-w-[1100px] mx-auto pt-6 md:pt-10 px-4 sm:px-6 md:px-8 relative z-10">
+            <div className="w-full max-w-[1650px] mx-auto pt-6 md:pt-10 px-4 sm:px-6 md:px-8 relative z-10">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0 mb-6 md:mb-8">
-                    <h1 className="text-[24px] md:text-[28px] font-medium text-[#111827] tracking-tight flex items-center">
-
-                        Submit Concept
-                    </h1>
+                    <div>
+                        <h1 className="text-[24px] md:text-[28px] font-bold text-[#111827] tracking-tight">
+                            {SUBMISSION_PAGE_CONTENT.pageTitle}
+                        </h1>
+                        <p className="text-[13px] text-slate-500 mt-1">{SUBMISSION_PAGE_CONTENT.pageSubtitle}</p>
+                    </div>
 
                     {user?.role === "keystone_member" && (
                         <div className="flex bg-[#f4f5f7] p-[3px] rounded-[8px] border border-gray-200 shadow-sm">
@@ -126,7 +125,7 @@ export default function SubmissionPage() {
                                         : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
                                 )}
                             >
-                                Single Concept
+                                {SUBMISSION_PAGE_CONTENT.tabs.single}
                             </button>
                             <button
                                 onClick={() => setSubmitMode("bulk")}
@@ -137,14 +136,14 @@ export default function SubmissionPage() {
                                         : "text-gray-500 hover:text-gray-700 hover:bg-gray-200/50"
                                 )}
                             >
-                                Bulk Concept
+                                {SUBMISSION_PAGE_CONTENT.tabs.bulk}
                             </button>
                         </div>
                     )}
                 </div>
 
                 {submitMode === "single" ? (
-                    <div className="flex flex-col md:flex-row w-full relative z-10 pb-[100px] gap-6 md:gap-0">
+                    <div className="flex flex-col md:flex-row w-full relative z-10 pb-[100px] gap-6">
                         {/* Left Sidebar Stepper Component */}
                         <Stepper
                             sections={sections}
@@ -160,7 +159,10 @@ export default function SubmissionPage() {
                         <div className="flex-1 bg-white rounded-[10px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-gray-200 min-h-[500px] z-10 flex flex-col pt-1 relative">
                             <div className="px-5 md:px-8 py-4 md:py-5 border-b border-gray-200 flex justify-between items-center bg-white rounded-t-[10px]">
                                 <div className="flex items-center text-[#111827] font-semibold text-[15px] md:text-[16px]">
-                                    <FileText className="h-[18px] w-[18px] mr-2 text-gray-400 stroke-[1.5]" />
+                                    {definition.sections.find(s => s.id === activeSection)?.icon === 'user'
+                                        ? <UserRound className="h-[18px] w-[18px] mr-2 text-gray-400 stroke-[1.5]" />
+                                        : <FileText className="h-[18px] w-[18px] mr-2 text-gray-400 stroke-[1.5]" />
+                                    }
                                     {sections.find(s => s.id === activeSection)?.label || "Concept Overview"}
                                 </div>
                                 <div className="text-[12px] md:text-[13px] text-gray-500 font-medium">
@@ -171,7 +173,7 @@ export default function SubmissionPage() {
                             <div className="px-5 sm:px-6 md:px-10 py-6 md:py-8 flex-1">
                                 <DynamicForm
                                     ref={formRef}
-                                    config={config}
+                                    definition={definition}
                                     onSubmit={submitForm}
                                     isSubmitting={isSubmitting}
                                     hideSubmitButton={true}
@@ -218,12 +220,6 @@ export default function SubmissionPage() {
                     isFirstStep={isFirstStep}
                     isLastStep={isLastStep}
                     isSubmitting={isSubmitting}
-                    activeSection={activeSection}
-                    onAttemptStep={(sectionId) => {
-                        if (!attemptedSteps.includes(sectionId)) {
-                            setAttemptedSteps(prev => [...prev, sectionId]);
-                        }
-                    }}
                     onBack={handleBack}
                     onNext={handleNext}
                     onCancel={() => navigate("/dashboard")}
