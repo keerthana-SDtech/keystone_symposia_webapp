@@ -50,14 +50,18 @@ export const Header = () => {
                                     <p className="text-xs leading-none text-gray-400 truncate">{user.email}</p>
                                 </div>
                             </DropdownMenuLabel>
-                            <DropdownMenuSeparator className="bg-gray-50" />
-                            <DropdownMenuItem
-                                onClick={() => navigate("/dashboard")}
-                                className="cursor-pointer py-2.5 text-gray-600 focus:bg-primary/10 focus:text-primary rounded-lg mx-1"
-                            >
-                                <LayoutDashboard className="mr-2 h-4 w-4" />
-                                <span>Dashboard</span>
-                            </DropdownMenuItem>
+                            {user.role !== 'external_scientist' && (
+                                <>
+                                    <DropdownMenuSeparator className="bg-gray-50" />
+                                    <DropdownMenuItem
+                                        onClick={() => navigate("/dashboard")}
+                                        className="cursor-pointer py-2.5 text-gray-600 focus:bg-primary/10 focus:text-primary rounded-lg mx-1"
+                                    >
+                                        <LayoutDashboard className="mr-2 h-4 w-4" />
+                                        <span>Dashboard</span>
+                                    </DropdownMenuItem>
+                                </>
+                            )}
                             <DropdownMenuSeparator className="bg-gray-50" />
                             <DropdownMenuItem
                                 onClick={handleLogout}

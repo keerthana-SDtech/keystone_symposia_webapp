@@ -40,9 +40,9 @@ export const DashboardView = () => {
 
     if (user.role === 'external_scientist') {
         return (
-            <div className="w-full py-10 flex flex-col items-center justify-center min-h-[50vh]">
-                <h2 className="text-2xl font-semibold text-gray-800 mb-2">Access Restricted</h2>
-                <p className="text-gray-500">You do not have permission to view the dashboard.</p>
+            <div className="w-full flex-1 flex flex-col items-center justify-center min-h-[60vh] z-10 relative">
+                <h2 className="text-[24px] font-semibold text-[#1e293b] mb-2 tracking-tight">Access Restricted</h2>
+                <p className="text-[15px] text-[#64748b]">You do not have permission to view the dashboard.</p>
             </div>
         );
     }
