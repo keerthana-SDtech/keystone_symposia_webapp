@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { formBuilderApi } from "../../form-builder/api";
-import type { FormDefinition } from "../../form-builder/types";
+import type { FormConfig } from "../../form-builder/types";
+import { httpClient } from "../../../lib/httpClient";
+
+interface CreatedConcept {
+    id: string;
+}
 
 export const useFormSubmission = () => {
     const [definition, setDefinition] = useState<FormDefinition | null>(null);
@@ -13,8 +18,8 @@ export const useFormSubmission = () => {
         const fetchConfig = async () => {
             try {
                 const data = await formBuilderApi.getConferenceFormConfig();
-                setDefinition(data);
-            } catch (err: any) {
+                setConfig(data);
+            } catch {
                 setError("Failed to load form configuration");
             } finally {
                 setIsLoading(false);
@@ -23,15 +28,36 @@ export const useFormSubmission = () => {
         fetchConfig();
     }, []);
 
-    const submitForm = async (data: any) => {
+    const submitForm = async (data: Record<string, unknown>) => {
         setIsSubmitting(true);
+        setError(null);
         try {
-            console.log("Submitting form data:", data);
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            // Use conferenceTitle as the concept's top-level title
+            const title = String(data.conferenceTitle ?? 'Untitled Concept');
+
+            // Map every form field to the backend's { fieldKey, fieldValue } format
+            const formData = Object.entries(data).map(([fieldKey, fieldValue]) => ({
+                fieldKey,
+                fieldValue: fieldValue != null ? String(fieldValue) : undefined,
+            }));
+
+            // Step 1 — create the concept draft
+            const { data: concept } = await httpClient.post<CreatedConcept>(
+                '/keystone/concepts',
+                { title, formData },
+            );
+
+            // Step 2 — submit for review
+            await httpClient.post(`/keystone/concepts/${concept.id}/submit`);
+
             setIsSuccess(true);
             return true;
-        } catch (err: any) {
-            setError("Failed to submit form");
+        } catch (err: unknown) {
+            const message =
+                (err as { response?: { data?: { message?: string } } })?.response?.data?.message
+                ?? (err instanceof Error ? err.message : null)
+                ?? 'Failed to submit form';
+            setError(message);
             return false;
         } finally {
             setIsSubmitting(false);

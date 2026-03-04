@@ -1,7 +1,6 @@
 import { Clock, Users, Focus, LayoutDashboard, UserCircle2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useAuthContext } from "../app/providers/useAuthContext";
 import { useTenant } from "../app/providers/TenantProvider";
 import { LANDING_PAGE_CONTENT, LANDING_PAGE_FEATURES } from "../features/landing/data/landingPageData";
 
@@ -14,15 +13,10 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 
 export default function LandingPage() {
     const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuthContext();
     const { name, logo, logoWidth, logoHeight } = useTenant();
 
-    const handleSubmit = () => {
-        if (isAuthenticated) {
-            navigate("/submission");
-        } else {
-            navigate("/login");
-        }
+    const handleLoginNav = () => {
+        navigate("/submission");
     };
 
     const userName = user?.name ?? user?.email ?? "User";

@@ -89,7 +89,7 @@ export const SignupForm = ({ schema, uiSchema }: SignupFormProps) => {
 
                 <p className="text-center text-[14px] text-[#374151] mt-6">
                     Already have an account?{" "}
-                    <Link to="/login" className="text-primary font-medium hover:underline">
+                    <Link to="/" className="text-primary font-medium hover:underline">
                         Login
                     </Link>
                 </p>
