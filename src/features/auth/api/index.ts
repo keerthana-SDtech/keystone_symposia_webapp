@@ -20,7 +20,6 @@ let MOCK_USERS = [
 
 export const authApi = {
     login: async (values: LoginFormValues): Promise<AuthResponse> => {
-        // Simulate API delay
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         const user = MOCK_USERS.find(u => u.email === values.email && u.password === values.password);
@@ -29,7 +28,8 @@ export const authApi = {
             const { password, ...userWithoutPassword } = user;
             return {
                 user: userWithoutPassword,
-                token: "mock-jwt-token",
+                accessToken: `mock-access-${user.id}`,
+                refreshToken: `mock-refresh-${user.id}`,
             };
         }
         throw new Error("Invalid email or password");
@@ -46,8 +46,28 @@ export const authApi = {
         MOCK_USERS.push({ ...newUser, password: values.password });
         return {
             user: newUser,
-            token: "mock-jwt-token",
+            accessToken: `mock-access-${newUser.id}`,
+            refreshToken: `mock-refresh-${newUser.id}`,
         };
+    },
+
+    refresh: async (refreshToken: string): Promise<AuthResponse> => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        // Parse userId from "mock-refresh-<id>"
+        const userId = refreshToken.replace('mock-refresh-', '');
+        const user = MOCK_USERS.find(u => u.id === userId);
+        if (!user) throw new Error("Invalid refresh token");
+        const { password, ...userWithoutPassword } = user;
+        return {
+            user: userWithoutPassword,
+            accessToken: `mock-access-${user.id}`,
+            refreshToken: `mock-refresh-${user.id}`,
+        };
+    },
+
+    logout: async (_refreshToken: string): Promise<void> => {
+        // In a real app: revoke refreshToken in the database
+        await new Promise((resolve) => setTimeout(resolve, 200));
     },
 
     getMe: async (userId: string): Promise<User> => {

@@ -1,129 +1,188 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Filter, SlidersHorizontal } from "lucide-react";
-import type { SubmissionSummary, SubmissionStatus } from "../types";
-
-const statusConfig: Record<SubmissionStatus, { color: string; border: string }> = {
-    'New Submission': { color: 'bg-purple-500', border: 'border-purple-200 text-purple-700' },
-    'Shortlisted': { color: 'bg-green-500', border: 'border-green-200 text-green-700' },
-    'Banked': { color: 'bg-gray-400', border: 'border-gray-200 text-gray-700' },
-    'Rejected': { color: 'bg-red-500', border: 'border-red-200 text-red-700' },
-    'Study Group Review': { color: 'bg-yellow-400', border: 'border-yellow-200 text-yellow-700' },
-    'SAB Board Meeting': { color: 'bg-yellow-400', border: 'border-yellow-200 text-yellow-700' },
-    'Proposal Inprogress': { color: 'bg-blue-500', border: 'border-blue-200 text-blue-700' },
-    'Ready for SAB Review': { color: 'bg-blue-500', border: 'border-blue-200 text-blue-700' },
-    'SAB Proposal In Review': { color: 'bg-yellow-400', border: 'border-yellow-200 text-yellow-700' },
-    'Final Revision': { color: 'bg-blue-500', border: 'border-blue-200 text-blue-700' },
-    'Proposal Finalized': { color: 'bg-green-500', border: 'border-green-200 text-green-700' },
-};
+import { ChevronLeft } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { MetricCards } from './MetricCards';
+import { SearchBar } from './SearchBar';
+import { FilterSort } from './FilterSort';
+import { FilterPanel } from './FilterPanel';
+import { StatusBadge } from './StatusBadge';
+import { useSubmissionsTable } from '../hooks/useSubmissionsTable';
+import type { SubmissionsTableProps } from '../types';
 
 export const SubmissionsTable = ({
+    title,
     submissions,
-    searchPlaceholder = "Search"
-}: {
-    submissions: SubmissionSummary[];
-    searchPlaceholder?: string;
-}) => {
+    metrics,
+    loading,
+    navigationBasePath,
+    submitButton,
+    searchPlaceholder = 'Search',
+    showMetrics = true,
+    batchSize = 20,
+    accessRestriction,
+    sortOption,
+    onSortSelect,
+    filterParams,
+    onFilterChange,
+}: SubmissionsTableProps) => {
     const navigate = useNavigate();
-    const [searchTerm, setSearchTerm] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [filterOpen, setFilterOpen] = useState(false);
 
-    // Debounce search term
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
-        }, 300);
+    const {
+        searchTerm,
+        setSearchTerm,
+        selectedMetric,
+        setSelectedMetric,
+        filteredSubmissions,
+        visibleRows,
+        hasMore,
+        sentinelRef,
+    } = useSubmissionsTable({ submissions, batchSize });
 
-        return () => clearTimeout(timer);
-    }, [searchTerm]);
+    const filterActive = !!(
+        filterParams.dateFrom ||
+        filterParams.dateTo ||
+        (filterParams.statuses?.length ?? 0) > 0
+    );
 
-    // Filter submissions based on debounced search
-    const filteredSubmissions = useMemo(() => {
-        if (!debouncedSearch.trim()) return submissions;
+    // ── Guards ────────────────────────────────────────────────────────────────
 
-        const lowerSearch = debouncedSearch.toLowerCase();
-        return submissions.filter(sub =>
-            sub.title.toLowerCase().includes(lowerSearch)
+    if (accessRestriction?.restricted) {
+        return (
+            <div className="w-full flex-1 flex flex-col items-center justify-center min-h-[60vh]">
+                <h2 className="text-[24px] font-semibold text-[#1e293b] mb-2 tracking-tight">
+                    {accessRestriction.message ?? 'Access Restricted'}
+                </h2>
+                <p className="text-[15px] text-[#64748b]">
+                    {accessRestriction.subMessage ?? 'You do not have permission to view this page.'}
+                </p>
+            </div>
         );
-    }, [submissions, debouncedSearch]);
+    }
+
+    if (loading) {
+        return (
+            <div className="w-full py-20 flex justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            </div>
+        );
+    }
+
+    // ── Render ────────────────────────────────────────────────────────────────
 
     return (
-        <div className="bg-white rounded-[10px] border border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden">
-            {/* Table Toolbar */}
-            <div className="p-4 flex items-center justify-between border-b border-gray-200 bg-white">
-                <div className="relative w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <input
-                        type="text"
-                        placeholder={searchPlaceholder}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-gray-400"
-                    />
-                </div>
-                <div className="flex items-center gap-3">
-                    <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-colors border border-transparent hover:border-gray-200">
-                        <Filter className="h-4 w-4" />
-                    </button>
-                    <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded-md transition-colors border border-transparent hover:border-gray-200">
-                        <SlidersHorizontal className="h-4 w-4" />
-                    </button>
-                </div>
-            </div>
+        <>
+            <FilterPanel
+                isOpen={filterOpen}
+                filterParams={filterParams}
+                onApply={onFilterChange}
+                onClose={() => setFilterOpen(false)}
+            />
 
-            {/* Table Body */}
-            <div className="w-full overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-[#FAFAFA] border-b border-gray-200">
-                            <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[30%]">Title</th>
-                            <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[15%]">Submitter</th>
-                            <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[20%]">Category</th>
-                            <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[15%]">Date</th>
-                            <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[20%]">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                        {filteredSubmissions.map((submission) => {
-                            const pillConfig = statusConfig[submission.status] || { color: 'bg-gray-500', border: 'border-gray-200 text-gray-700' };
+            <div className="w-full">
 
-                            return (
-                                <tr
-                                    key={submission.id}
-                                    onClick={() => navigate(`/dashboard/${submission.id}`)}
-                                    className="hover:bg-gray-50/50 transition-colors cursor-pointer"
-                                >
-                                    <td className="py-4 px-6">
-                                        <span className="text-[14px] font-medium text-gray-900">{submission.title}</span>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <span className="text-[14px] text-gray-500">{submission.submitter}</span>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <span className="text-[14px] text-gray-500">{submission.category}</span>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <span className="text-[14px] text-gray-500">{submission.date}</span>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border ${pillConfig.border} bg-white text-[13px]`}>
-                                            <span className={`h-1.5 w-1.5 rounded-full ${pillConfig.color}`} />
-                                            {submission.status}
-                                        </div>
-                                    </td>
+                {/* Header */}
+                {selectedMetric ? (
+                    <div className="flex items-center gap-2 mb-8 mt-2">
+                        <button
+                            onClick={() => setSelectedMetric(null)}
+                            aria-label="Back"
+                            className="text-gray-500 hover:text-gray-900 transition-colors p-1 -ml-2 rounded-full hover:bg-gray-100"
+                        >
+                            <ChevronLeft className="h-6 w-6 stroke-[1.5]" />
+                        </button>
+                        <h1 className="text-[28px] font-medium text-[#111827] tracking-tight leading-none">
+                            {selectedMetric.title} ({filteredSubmissions.length})
+                        </h1>
+                    </div>
+                ) : (
+                    <div className="flex items-center justify-between mb-8">
+                        <h1 className="text-[28px] font-semibold text-[#111827] tracking-tight">
+                            {title} ({submissions.length})
+                        </h1>
+                        {submitButton && (
+                            <Button
+                                onClick={submitButton.onClick}
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-5 rounded-md font-medium text-[14px]"
+                            >
+                                {submitButton.label}
+                            </Button>
+                        )}
+                    </div>
+                )}
+
+                {/* Metric cards */}
+                {showMetrics && !selectedMetric && metrics.length > 0 && (
+                    <MetricCards metrics={metrics} onMetricClick={setSelectedMetric} />
+                )}
+
+                {/* Table card */}
+                <div className="bg-white rounded-[10px] border border-gray-200 shadow-[0_4px_24px_rgba(0,0,0,0.03)] overflow-hidden">
+
+                    {/* Toolbar */}
+                    <div className="p-4 flex items-center justify-between border-b border-gray-200">
+                        <SearchBar
+                            value={searchTerm}
+                            onChange={setSearchTerm}
+                            placeholder={selectedMetric ? `Search in ${selectedMetric.title}...` : searchPlaceholder}
+                        />
+                        <FilterSort
+                            onFilter={() => setFilterOpen(true)}
+                            filterActive={filterActive}
+                            sortOption={sortOption}
+                            onSortSelect={onSortSelect}
+                        />
+                    </div>
+
+                    {/* Table */}
+                    <div className="w-full overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-[#FAFAFA] border-b border-gray-200">
+                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[30%]">Title</th>
+                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[15%]">Submitter</th>
+                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[20%]">Category</th>
+                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[15%]">Date</th>
+                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[20%]">Status</th>
                                 </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {visibleRows.map(row => (
+                                    <tr
+                                        key={row.id}
+                                        onClick={() => navigate(`${navigationBasePath}/${row.id}`)}
+                                        className="hover:bg-gray-50/50 transition-colors cursor-pointer"
+                                    >
+                                        <td className="py-4 px-6 text-[14px] font-medium text-gray-900">{row.title}</td>
+                                        <td className="py-4 px-6 text-[14px] text-gray-500">{row.submitter}</td>
+                                        <td className="py-4 px-6 text-[14px] text-gray-500">{row.category}</td>
+                                        <td className="py-4 px-6 text-[14px] text-gray-500">{row.date}</td>
+                                        <td className="py-4 px-6">
+                                            <StatusBadge status={row.status} />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
 
-            {/* Empty State Layout */}
-            {filteredSubmissions.length === 0 && (
-                <div className="py-12 flex flex-col items-center justify-center text-center">
-                    <p className="text-gray-500 text-sm">No submissions found.</p>
+                    {/* Infinite scroll sentinel */}
+                    <div ref={sentinelRef} className="h-10 flex items-center justify-center" aria-hidden="true">
+                        {hasMore && (
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
+                        )}
+                    </div>
+
+                    {/* Empty state */}
+                    {filteredSubmissions.length === 0 && (
+                        <div className="py-12 flex items-center justify-center">
+                            <p className="text-gray-500 text-sm">No submissions found.</p>
+                        </div>
+                    )}
+
                 </div>
-            )}
-        </div>
+            </div>
+        </>
     );
 };

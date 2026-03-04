@@ -15,7 +15,7 @@ export const useAuth = () => {
         setError(null);
         try {
             const response = await authApi.login(values);
-            setAuthUser(response.user);
+            setAuthUser(response.user, response.accessToken, response.refreshToken);
             if (response.user.role === "external_scientist") {
                 navigate("/submission", { replace: true });
             } else {
@@ -33,7 +33,7 @@ export const useAuth = () => {
         setError(null);
         try {
             const response = await authApi.signup(values);
-            setAuthUser(response.user);
+            setAuthUser(response.user, response.accessToken, response.refreshToken);
 
             if (response.user.role === "external_scientist") {
                 navigate("/submission", { replace: true });

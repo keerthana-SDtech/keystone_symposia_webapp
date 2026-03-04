@@ -1,5 +1,5 @@
 import { formBuilderApi } from '../../form-builder/api';
-import type { SubmissionSummary, DashboardMetric, SubmissionStatus } from '../types';
+import type { SubmissionSummary, DashboardMetric, SubmissionStatus, SortOption, FilterParams } from '../types';
 
 // Helper to extract options from formBuilderApi
 const getCategories = async (): Promise<string[]> => {
@@ -13,7 +13,7 @@ const getCategories = async (): Promise<string[]> => {
     return ["Immunology", "Micro Biology", "Genetics"]; // Fallback
 };
 
-export const getDashboardData = async (role: string, statusFilter?: SubmissionStatus[]) => {
+export const getDashboardData = async (role: string, sort?: SortOption, filter?: FilterParams) => {
     const categories = await getCategories();
 
     // Generate fixed data for dashboard mapping to provided mockups
@@ -118,9 +118,24 @@ export const getDashboardData = async (role: string, statusFilter?: SubmissionSt
         return { metrics: [], submissions: [] };
     }
 
-    if (statusFilter && statusFilter.length > 0) {
-        submissions = submissions.filter(s => statusFilter.includes(s.status));
+    // DB-side filter
+    if (filter?.statuses?.length) {
+        submissions = submissions.filter(s => filter.statuses!.includes(s.status));
     }
+    if (filter?.dateFrom || filter?.dateTo) {
+        submissions = submissions.filter(s => {
+            const d = new Date(s.date).getTime();
+            if (filter.dateFrom && d < new Date(filter.dateFrom).getTime()) return false;
+            if (filter.dateTo && d > new Date(filter.dateTo).getTime()) return false;
+            return true;
+        });
+    }
+
+    // DB-side sort
+    if (sort === 'az') submissions.sort((a, b) => a.title.localeCompare(b.title));
+    else if (sort === 'za') submissions.sort((a, b) => b.title.localeCompare(a.title));
+    else if (sort === 'newest') submissions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    else if (sort === 'oldest') submissions.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     // Generate accurate metrics
     const metrics: DashboardMetric[] = [

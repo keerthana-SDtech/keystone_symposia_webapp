@@ -1,12 +1,14 @@
 import React, { createContext, useState, useEffect } from 'react';
 import type { User } from '../../features/auth/types';
 import { authApi } from '../../features/auth/api';
+import { tokenStore } from '../../lib/tokenStore';
+import { setAuthFailureHandler } from '../../lib/apiFetch';
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (user: User) => void;
+    login: (user: User, accessToken: string, refreshToken: string) => void;
     logout: () => void;
 }
 
@@ -17,32 +19,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        // Register auth failure handler (called by apiFetch when refresh fails)
+        setAuthFailureHandler(() => {
+            setUser(null);
+            tokenStore.clear();
+            localStorage.removeItem('refreshToken');
+        });
+
         const initAuth = async () => {
-            const userId = localStorage.getItem('auth_id');
-            if (userId) {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (refreshToken) {
                 try {
-                    // In a real app, this would be validated against a server
-                    const userData = await authApi.getMe(userId);
-                    setUser(userData);
-                } catch (error) {
-                    console.error("Failed to restore session:", error);
-                    localStorage.removeItem('auth_id');
+                    const tokens = await authApi.refresh(refreshToken);
+                    tokenStore.set(tokens.accessToken);
+                    localStorage.setItem('refreshToken', tokens.refreshToken);
+                    setUser(tokens.user);
+                } catch {
+                    localStorage.removeItem('refreshToken');
                 }
             }
             setIsLoading(false);
         };
+
         initAuth();
     }, []);
 
-    const login = (userData: User) => {
+    const login = (userData: User, accessToken: string, refreshToken: string) => {
         setUser(userData);
-        // Store only ID, not the whole object with role
-        localStorage.setItem('auth_id', userData.id);
+        tokenStore.set(accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
     };
 
-    const logout = () => {
+    const logout = async () => {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+            try { await authApi.logout(refreshToken); } catch { /* ignore */ }
+        }
         setUser(null);
-        localStorage.removeItem('auth_id');
+        tokenStore.clear();
+        localStorage.removeItem('refreshToken');
     };
 
     return (
@@ -55,5 +70,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         </AuthContext.Provider>
     );
 };
-
-
