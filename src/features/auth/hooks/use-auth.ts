@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { authApi } from "../api";
 import type { LoginFormValues, SignupFormValues } from "../schemas";
 import { useAuthContext } from "../../../app/providers/useAuthContext";
+import { ROLE_HOME } from "../../../app/router/roleHome";
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -16,11 +17,7 @@ export const useAuth = () => {
         try {
             const response = await authApi.login(values);
             setAuthUser(response.user, response.accessToken, response.refreshToken);
-            if (response.user.role === "external_scientist") {
-                navigate("/submission", { replace: true });
-            } else {
-                navigate("/dashboard", { replace: true });
-            }
+            navigate(ROLE_HOME[response.user.role], { replace: true });
         } catch (err: any) {
             setError(err.message || "Something went wrong");
         } finally {
@@ -34,12 +31,7 @@ export const useAuth = () => {
         try {
             const response = await authApi.signup(values);
             setAuthUser(response.user, response.accessToken, response.refreshToken);
-
-            if (response.user.role === "external_scientist") {
-                navigate("/submission", { replace: true });
-            } else {
-                navigate("/dashboard", { replace: true });
-            }
+            navigate(ROLE_HOME[response.user.role], { replace: true });
         } catch (err: any) {
             setError(err.message || "Something went wrong");
         } finally {

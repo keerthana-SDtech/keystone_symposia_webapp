@@ -19,7 +19,7 @@ export const Header = () => {
 
     const handleLogout = () => {
         logout();
-        navigate("/login");
+        navigate("/");
     };
 
     return (
@@ -73,7 +73,7 @@ export const Header = () => {
                         </DropdownMenuContent>
                     </DropdownMenu>
                 ) : (
-                    <div className="text-[#e5e7eb] font-medium text-[14.5px] cursor-pointer hover:text-white transition-colors" onClick={() => navigate("/login")}>
+                    <div className="text-[#e5e7eb] font-medium text-[14.5px] cursor-pointer hover:text-white transition-colors" onClick={() => navigate("/")}>
                         Login
                     </div>
                 )}

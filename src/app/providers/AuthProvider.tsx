@@ -1,15 +1,15 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import type { User } from '../../features/auth/types';
 import { authApi } from '../../features/auth/api';
 import { tokenStore } from '../../lib/tokenStore';
-import { setAuthFailureHandler } from '../../lib/apiFetch';
+import { setAuthFailureHandler } from '../../lib/httpClient';
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (user: User, accessToken: string, refreshToken: string) => void;
-    logout: () => void;
+    logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,7 +19,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Register auth failure handler (called by apiFetch when refresh fails)
+        // When httpClient's 401 refresh fails, clear the session
         setAuthFailureHandler(() => {
             setUser(null);
             tokenStore.clear();
@@ -30,10 +30,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const refreshToken = localStorage.getItem('refreshToken');
             if (refreshToken) {
                 try {
-                    const tokens = await authApi.refresh(refreshToken);
-                    tokenStore.set(tokens.accessToken);
-                    localStorage.setItem('refreshToken', tokens.refreshToken);
-                    setUser(tokens.user);
+                    // authApi.refresh already syncs tokenStore and localStorage internally
+                    const { user: refreshedUser } = await authApi.refresh(refreshToken);
+                    setUser(refreshedUser);
                 } catch {
                     localStorage.removeItem('refreshToken');
                 }
@@ -44,29 +43,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         initAuth();
     }, []);
 
-    const login = (userData: User, accessToken: string, refreshToken: string) => {
+    const login = useCallback((userData: User, accessToken: string, refreshToken: string) => {
         setUser(userData);
         tokenStore.set(accessToken);
         localStorage.setItem('refreshToken', refreshToken);
-    };
+    }, []);
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
-            try { await authApi.logout(refreshToken); } catch { /* ignore */ }
+            try { await authApi.logout(refreshToken); } catch { /* best-effort */ }
         }
         setUser(null);
         tokenStore.clear();
         localStorage.removeItem('refreshToken');
-    };
+    }, []);
 
+    // Do NOT block the tree here — ProtectedRoute and GuestRoute handle
+    // per-route loading states so public pages (login, signup) render immediately.
     return (
         <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
-            {!isLoading ? children : (
-                <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                </div>
-            )}
+            {children}
         </AuthContext.Provider>
     );
 };

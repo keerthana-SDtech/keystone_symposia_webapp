@@ -1,73 +1,14 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import LandingPage from '../pages/LandingPage'
-import LoginPage from '../pages/LoginPage'
-import SignupPage from '../pages/SignupPage'
-import SubmissionPage from '../pages/SubmissionPage'
-import DashboardPage from '../pages/DashboardPage'
-import SubmissionDetailPage from '../pages/SubmissionDetailPage'
-import ReviewerDashboardPage from '../pages/ReviewerDashboardPage'
-import ReviewConceptPage from '../pages/ReviewConceptPage'
-import SubmitReviewPage from '../pages/SubmitReviewPage'
-import ReviewSubmittedPage from '../pages/ReviewSubmittedPage'
-import { ProtectedRoute } from './router/ProtectedRoute'
+import { BrowserRouter, useRoutes } from 'react-router-dom'
+import { appRoutes } from './router/routes'
+
+function AppRoutes() {
+  return useRoutes(appRoutes)
+}
 
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-
-        {/* Protected routes for submitting concepts */}
-        <Route
-          path="/submission"
-          element={
-            <ProtectedRoute allowedRoles={['external_scientist', 'keystone_member']}>
-              <SubmissionPage />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* User dashboard */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/dashboard/:id"
-          element={
-            <ProtectedRoute>
-              <SubmissionDetailPage />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Reviewer routes */}
-        <Route
-          path="/reviewer/dashboard"
-          element={<ReviewerDashboardPage />}
-        />
-        <Route
-          path="/reviewer/review/:conceptId"
-          element={<ReviewConceptPage />}
-        />
-        <Route
-          path="/reviewer/review/:conceptId/submit"
-          element={<SubmitReviewPage />}
-        />
-        <Route
-          path="/reviewer/review/:conceptId/submitted"
-          element={<ReviewSubmittedPage />}
-        />
-
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   )
 }

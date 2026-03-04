@@ -2,20 +2,14 @@ import { Clock, Users, Focus, LayoutDashboard } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { useAuthContext } from "../app/providers/useAuthContext";
 import { useTenant } from "../app/providers/TenantProvider";
 
 export default function LandingPage() {
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuthContext();
     const { name, logo, logoWidth, logoHeight } = useTenant();
 
     const handleLoginNav = () => {
-        if (isAuthenticated) {
-            navigate("/submission");
-        } else {
-            navigate("/login");
-        }
+        navigate("/submission");
     };
 
     return (
