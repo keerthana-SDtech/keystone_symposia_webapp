@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { httpClient } from '../../../lib/httpClient';
 import { formBuilderApi } from '../../form-builder/api';
-import type { FormConfig } from '../../form-builder/types';
+import type { FormDefinition } from '../../form-builder/types';
 
 interface ConceptDetailRaw {
     id: string;
@@ -10,7 +10,7 @@ interface ConceptDetailRaw {
 }
 
 export function useEditConcept(id: string) {
-    const [config, setConfig] = useState<FormConfig | null>(null);
+    const [definition, setDefinition] = useState<FormDefinition | null>(null);
     const [initialValues, setInitialValues] = useState<Record<string, string> | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -19,7 +19,7 @@ export function useEditConcept(id: string) {
     useEffect(() => {
         const load = async () => {
             try {
-                const [{ data: concept }, formConfig] = await Promise.all([
+                const [{ data: concept }, formDefinition] = await Promise.all([
                     httpClient.get<ConceptDetailRaw>(`/keystone/concepts/${id}`),
                     formBuilderApi.getConferenceFormConfig(),
                 ]);
@@ -30,7 +30,7 @@ export function useEditConcept(id: string) {
                 }
 
                 setInitialValues(values);
-                setConfig(formConfig);
+                setDefinition(formDefinition);
             } catch {
                 setError('Failed to load concept');
             } finally {
@@ -74,5 +74,5 @@ export function useEditConcept(id: string) {
         }
     };
 
-    return { config, initialValues, isLoading, isSaving, error, saveForm };
+    return { definition, initialValues, isLoading, isSaving, error, saveForm };
 }
