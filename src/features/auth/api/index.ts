@@ -91,6 +91,7 @@ export const authApi = {
         const { data } = await authClient.post<TokenPair>('/auth/refresh', { refreshToken });
         // Sync the in-memory token store so subsequent calls work
         tokenStore.set(data.accessToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
         return buildAuthResponse(data);
     },
 
@@ -98,8 +99,11 @@ export const authApi = {
         await authClient.post('/auth/logout', { refreshToken }).catch(() => {/* ignore */});
     },
 
-    // Kept for interface compatibility — profile is always fetched inside the above methods
-    getMe: async (_userId: string): Promise<User> => {
-        throw new Error('Use authApi.login / authApi.refresh instead');
+    /** Restore user state from an existing valid access token — no refresh call. */
+    hydrateUser: async (accessToken: string): Promise<User> => {
+        const jwt = decodeJwt(accessToken);
+        const profile = await fetchProfile(accessToken);
+        const name = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || jwt.email;
+        return { id: jwt.sub, email: jwt.email, name, role: mapBackendRole(jwt.role) };
     },
 };
