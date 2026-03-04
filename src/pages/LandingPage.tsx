@@ -1,9 +1,8 @@
-import { Clock, Users, Focus, LayoutDashboard, UserCircle2 } from "lucide-react";
+import { Clock, Users, Focus, LayoutDashboard } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useTenant } from "../app/providers/TenantProvider";
 import { LANDING_PAGE_CONTENT, LANDING_PAGE_FEATURES } from "../features/landing/data/landingPageData";
-import { useAuthContext } from "../app/providers/useAuthContext";
+import { Header } from "../components/layout/Header";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
     "Focus": <Focus className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
@@ -14,30 +13,15 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 
 export default function LandingPage() {
     const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuthContext();
-
-    const { name, logo, logoWidth, logoHeight } = useTenant();
 
     const handleLoginNav = () => {
         navigate("/submission");
     };
 
-    const userName = user?.name ?? user?.email ?? "User";
-
     return (
         <div className="min-h-screen bg-white flex flex-col font-sans">
-            {/* Header */}
-            <header className="flex justify-between items-center px-8 py-4 bg-[#58008e] w-full z-20 shrink-0">
-                <img src={logo} alt={`${name} Logo`} style={{ width: logoWidth, height: logoHeight }} className="object-contain" />
-                {isAuthenticated && (
-                    <div className="flex items-center gap-3">
-                        <span className="text-white text-[14px]">Welcome, {userName}</span>
-                        <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-                            <UserCircle2 className="w-5 h-5 text-white" />
-                        </div>
-                    </div>
-                )}
-            </header>
+            {/* Shared header with purple brand background */}
+            <Header bg="#58008e" />
 
             {/* Hero Section */}
             <section className="relative bg-[#E8E8E8] overflow-hidden">
@@ -66,7 +50,6 @@ export default function LandingPage() {
                         <div className="absolute w-[380px] h-[380px] rounded-full border border-white/60" />
                         <div className="absolute w-[240px] h-[240px] rounded-full border border-white/60" />
                         <div className="absolute w-[120px] h-[120px] rounded-full border border-white/60" />
-                        {/* Small floating circles */}
                         <div className="absolute top-[8%] left-[32%] w-8 h-8 rounded-full border border-white/60" />
                         <div className="absolute top-[18%] right-[6%] w-6 h-6 rounded-full border border-white/60" />
                         <div className="absolute bottom-[28%] right-[-2%] w-10 h-10 rounded-full border border-white/60" />
