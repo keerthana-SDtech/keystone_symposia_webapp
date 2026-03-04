@@ -1,20 +1,14 @@
-import { Navigate } from "react-router-dom";
 import { AuthLayout } from "../features/auth/components/auth-layout";
 import { LoginForm } from "../features/auth/components/login-form";
-import { useAuthContext } from "../app/providers/useAuthContext";
 
-export default function LoginPage() {
-    const { isAuthenticated, user } = useAuthContext();
+interface LoginPageProps {
+    variant?: 'external' | 'staff';
+}
 
-    if (isAuthenticated) {
-        if (user?.role === "external_scientist") {
-            return <Navigate to="/submission" replace />;
-        }
-        return <Navigate to="/dashboard" replace />;
-    }
+export default function LoginPage({ variant = 'external' }: LoginPageProps) {
     return (
         <AuthLayout>
-            <LoginForm />
+            <LoginForm variant={variant} />
         </AuthLayout>
     );
 }

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "../../../components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -22,6 +22,7 @@ export function BulkUpload({
     handleDownloadTemplate
 }: BulkUploadProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isDragActive, setIsDragActive] = useState(false);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const selectedFile = e.target.files?.[0];
@@ -30,8 +31,28 @@ export function BulkUpload({
         }
     };
 
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragActive(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragActive(false);
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragActive(true);
+    };
+
     const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
+        e.stopPropagation();
+        setIsDragActive(false);
         const droppedFile = e.dataTransfer.files?.[0];
         if (droppedFile) {
             uploadFile(droppedFile);
@@ -52,8 +73,10 @@ export function BulkUpload({
             </div>
 
             <div
-                className={`border-2 border-dashed ${error ? 'border-red-400' : 'border-gray-200'} rounded-lg bg-[#f9fafb] flex flex-col items-center justify-center p-12 min-h-[300px] cursor-pointer transition-colors hover:bg-gray-50`}
-                onDragOver={(e) => e.preventDefault()}
+                className={`border-2 border-dashed ${error ? 'border-red-400' : 'border-gray-200'} rounded-lg ${isDragActive ? 'bg-[#FBF0FF]' : 'bg-[#f9fafb] hover:bg-gray-50'} flex flex-col items-center justify-center p-12 min-h-[300px] cursor-pointer transition-colors`}
+                onDragEnter={handleDragEnter}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
                 onClick={() => fileInputRef.current?.click()}
             >

@@ -21,104 +21,41 @@ export const bulkSubmissionApi = {
     downloadTemplate: async (): Promise<void> => {
         const config = await formBuilderApi.getConferenceFormConfig();
 
-        // Base styles for ID col
-        const idHeaderStyle = {
-            fill: { fgColor: { rgb: "1F2937" } }, // Dark gray
-            font: { color: { rgb: "FFFFFF" }, bold: true },
-            alignment: { horizontal: "center", vertical: "center" }
-        };
-        const idSubHeaderStyle = {
-            fill: { fgColor: { rgb: "F3F4F6" } }, // Light gray
-            font: { color: { rgb: "111827" }, bold: true },
-            alignment: { horizontal: "center", vertical: "center" }
-        };
+        return new Promise((resolve, reject) => {
+            // Initiate Web Worker specifically to handle heavy Excel execution away from main UI "message" handlers
+            const worker = new Worker(new URL('./xlsxWorker.ts', import.meta.url), {
+                type: 'module'
+            });
 
-        const row1: any[] = [{ v: "System", t: "s", s: idHeaderStyle }];
-        const row2: any[] = [{ v: "ID", t: "s", s: idSubHeaderStyle }];
-        const merges: XLSX.Range[] = [];
-        let currentColIndex = 1;
-        let themeIndex = 0;
+            worker.onmessage = (e) => {
+                if (e.data.success) {
+                    const blob = new Blob([e.data.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const url = URL.createObjectURL(blob);
 
-        config.forEach(section => {
-            const theme = THEMES[themeIndex % THEMES.length];
-            themeIndex++;
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = "concept_submission_template.xlsx";
+                    document.body.appendChild(a);
+                    a.click();
 
-            const headerStyle = {
-                fill: { fgColor: { rgb: theme.bg } },
-                font: { color: { rgb: theme.fg }, bold: true },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-
-            const subHeaderStyle = {
-                fill: { fgColor: { rgb: theme.lightBg } },
-                font: { color: { rgb: "111827" }, bold: true },
-                alignment: { horizontal: "center", vertical: "center" }
-            };
-
-            if (section.fields && section.fields.length > 0) {
-                const numFields = section.fields.length;
-                row1[currentColIndex] = { v: section.sectionTitle, t: "s", s: headerStyle };
-
-                if (numFields > 1) {
-                    merges.push({
-                        s: { r: 0, c: currentColIndex },
-                        e: { r: 0, c: currentColIndex + numFields - 1 }
-                    });
+                    // Cleanup
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    worker.terminate();
+                    resolve();
+                } else {
+                    worker.terminate();
+                    reject(new Error(e.data.error || "Worker failed to generate Excel file"));
                 }
+            };
 
-                section.fields.forEach(field => {
-                    row2[currentColIndex] = { v: field.label, t: "s", s: subHeaderStyle };
-                    currentColIndex++;
-                });
-            }
-            if (section.subsections && section.subsections.length > 0) {
-                section.subsections.forEach(sub => {
-                    if (sub.fields && sub.fields.length > 0) {
-                        const numFields = sub.fields.length;
-                        row1[currentColIndex] = { v: sub.sectionTitle, t: "s", s: headerStyle };
+            worker.onerror = (err) => {
+                worker.terminate();
+                reject(err);
+            };
 
-                        if (numFields > 1) {
-                            merges.push({
-                                s: { r: 0, c: currentColIndex },
-                                e: { r: 0, c: currentColIndex + numFields - 1 }
-                            });
-                        }
-
-                        sub.fields.forEach(field => {
-                            row2[currentColIndex] = { v: field.label, t: "s", s: subHeaderStyle };
-                            currentColIndex++;
-                        });
-                    }
-                });
-            }
+            // Command the worker to process the config off the main thread
+            worker.postMessage({ config });
         });
-
-        for (let i = 0; i < row2.length; i++) {
-            if (row1[i] === undefined) {
-                // Determine a fallback style using the left neighbor's style so background merges cleanly
-                let fallbackStyle = null;
-                for (let j = i - 1; j >= 0; j--) {
-                    if (row1[j] && row1[j].s) {
-                        fallbackStyle = row1[j].s;
-                        break;
-                    }
-                }
-                row1[i] = { v: "", t: "s", s: fallbackStyle };
-            }
-        }
-
-        const ws = XLSX.utils.aoa_to_sheet([row1, row2]);
-
-        // Auto-fit columns based on subheader text length
-        const colWidths = row2.map(cell => ({ wch: Math.max(15, (cell?.v?.length || 10) + 5) }));
-        ws['!cols'] = colWidths;
-        if (merges.length > 0) {
-            ws['!merges'] = merges;
-        }
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Template");
-
-        XLSX.writeFile(wb, "concept_submission_template.xlsx", { bookType: 'xlsx' });
     }
 };

@@ -1,4 +1,4 @@
-import { useMemo, forwardRef, useImperativeHandle } from "react";
+import { useMemo, forwardRef, useImperativeHandle, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { generateZodSchema } from "../schemas";
@@ -95,6 +95,14 @@ export const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>(({ confi
     });
 
     const values = watch();
+    const [debouncedValues, setDebouncedValues] = useState<any>({});
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedValues(values);
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [values]);
 
     useEffect(() => {
         if (!activeSectionId || !onActiveSectionValidChange) return;
@@ -113,12 +121,12 @@ export const DynamicForm = forwardRef<DynamicFormRef, DynamicFormProps>(({ confi
 
         try {
             const subSchema = (schema as any).pick(pickObj);
-            const result = subSchema.safeParse(values);
+            const result = subSchema.safeParse(debouncedValues);
             onActiveSectionValidChange(result.success);
         } catch (e) {
             console.error(e);
         }
-    }, [activeSectionId, config, schema, values, onActiveSectionValidChange]);
+    }, [activeSectionId, config, schema, debouncedValues, onActiveSectionValidChange]);
 
     useImperativeHandle(ref, () => ({
         validateActiveSection: async () => {

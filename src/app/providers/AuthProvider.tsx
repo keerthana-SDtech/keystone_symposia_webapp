@@ -1,13 +1,15 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import type { User } from '../../features/auth/types';
 import { authApi } from '../../features/auth/api';
+import { tokenStore } from '../../lib/tokenStore';
+import { setAuthFailureHandler } from '../../lib/httpClient';
 
 interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isLoading: boolean;
-    login: (user: User) => void;
-    logout: () => void;
+    login: (user: User, accessToken: string, refreshToken: string) => void;
+    logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,43 +19,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        // When httpClient's 401 refresh fails, clear the session
+        setAuthFailureHandler(() => {
+            setUser(null);
+            tokenStore.clear();
+            localStorage.removeItem('refreshToken');
+        });
+
         const initAuth = async () => {
-            const userId = localStorage.getItem('auth_id');
-            if (userId) {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (refreshToken) {
                 try {
-                    // In a real app, this would be validated against a server
-                    const userData = await authApi.getMe(userId);
-                    setUser(userData);
-                } catch (error) {
-                    console.error("Failed to restore session:", error);
-                    localStorage.removeItem('auth_id');
+                    // authApi.refresh already syncs tokenStore and localStorage internally
+                    const { user: refreshedUser } = await authApi.refresh(refreshToken);
+                    setUser(refreshedUser);
+                } catch {
+                    localStorage.removeItem('refreshToken');
                 }
             }
             setIsLoading(false);
         };
+
         initAuth();
     }, []);
 
-    const login = (userData: User) => {
+    const login = useCallback((userData: User, accessToken: string, refreshToken: string) => {
         setUser(userData);
-        // Store only ID, not the whole object with role
-        localStorage.setItem('auth_id', userData.id);
-    };
+        tokenStore.set(accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+    }, []);
 
-    const logout = () => {
+    const logout = useCallback(async () => {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (refreshToken) {
+            try { await authApi.logout(refreshToken); } catch { /* best-effort */ }
+        }
         setUser(null);
-        localStorage.removeItem('auth_id');
-    };
+        tokenStore.clear();
+        localStorage.removeItem('refreshToken');
+    }, []);
 
+    // Do NOT block the tree here — ProtectedRoute and GuestRoute handle
+    // per-route loading states so public pages (login, signup) render immediately.
     return (
         <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
-            {!isLoading ? children : (
-                <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-                </div>
-            )}
+            {children}
         </AuthContext.Provider>
     );
 };
-
-
