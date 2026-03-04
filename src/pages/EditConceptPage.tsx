@@ -10,7 +10,7 @@ export default function EditConceptPage() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const formRef = useRef<DynamicFormRef>(null);
-    const { config, initialValues, isLoading, isSaving, error, saveForm } = useEditConcept(id!);
+    const { definition, initialValues, isLoading, isSaving, error, saveForm } = useEditConcept(id!);
     const [activeSection, setActiveSection] = useState("");
     const [sectionErrors, setSectionErrors] = useState<Record<string, number>>({});
 
@@ -22,7 +22,7 @@ export default function EditConceptPage() {
         );
     }
 
-    if (error || !config) {
+    if (error || !definition) {
         return (
             <PageShell className="flex items-center justify-center bg-[#f9fafb]">
                 <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md">
@@ -36,10 +36,7 @@ export default function EditConceptPage() {
         );
     }
 
-    const sections = config.map(s => ({
-        id: s.sectionTitle.toLowerCase().replace(/\s+/g, '-'),
-        label: s.sectionTitle,
-    }));
+    const sections = definition.sections.map(s => ({ id: s.id, label: s.label }));
 
     const currentSection = activeSection || sections[0]?.id || "";
 
@@ -118,7 +115,7 @@ export default function EditConceptPage() {
                         <div className="px-8 py-8 flex-1">
                             <DynamicForm
                                 ref={formRef}
-                                config={config}
+                                definition={definition}
                                 onSubmit={handleSubmit}
                                 isSubmitting={isSaving}
                                 hideSubmitButton
