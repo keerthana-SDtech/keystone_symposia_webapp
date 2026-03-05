@@ -31,6 +31,19 @@ function mapStage(stage: string | undefined): SubmissionStatus {
     }
 }
 
+/** Recursively extract field keys from a JsonForms UISchema element tree */
+function extractScopeKeys(el: any): string[] {
+    if (!el) return [];
+    if (el.type === 'Control' && el.scope) {
+        // scope is like "#/properties/fieldName"
+        return [el.scope.split('/').pop() as string];
+    }
+    if (Array.isArray(el.elements)) {
+        return (el.elements as any[]).flatMap(extractScopeKeys);
+    }
+    return [];
+}
+
 export async function submitConcept(id: string): Promise<void> {
     await httpClient.post(`/keystone/concepts/${id}/submit`, {});
 }
@@ -49,31 +62,24 @@ export async function rejectConcept(id: string, notes: string): Promise<void> {
 
 export async function getConceptDetail(id: string): Promise<SubmissionDetail | null> {
     try {
-        const [{ data: concept }, config] = await Promise.all([
+        const [{ data: concept }, definition] = await Promise.all([
             httpClient.get<ConceptDetailResponse>(`/keystone/concepts/${id}`),
             formBuilderApi.getConferenceFormConfig(),
         ]);
 
-        // Build fieldKey → fieldValue lookup from the EAV formData
+        // Build fieldKey → fieldValue lookup from the EAV formData array
         const fieldValues: Record<string, string> = {};
         for (const item of concept.formData ?? []) {
             fieldValues[item.fieldKey] = item.fieldValue ?? '';
         }
 
-        // Reconstruct section → fields map from form config
+        // Build section → field map using the FormDefinition sections + UISchema scope keys
         const sections: SubmissionDetail['sections'] = {};
-        for (const section of config) {
-            sections[section.sectionTitle] = {};
-            for (const field of section.fields) {
-                sections[section.sectionTitle][field.name] = fieldValues[field.name] ?? '';
-            }
-            if (section.subsections) {
-                for (const sub of section.subsections) {
-                    sections[sub.sectionTitle] = {};
-                    for (const field of sub.fields) {
-                        sections[sub.sectionTitle][field.name] = fieldValues[field.name] ?? '';
-                    }
-                }
+        for (const section of definition.sections) {
+            const keys = extractScopeKeys(section.uischema);
+            sections[section.label] = {};
+            for (const key of keys) {
+                sections[section.label][key] = fieldValues[key] ?? '';
             }
         }
 
@@ -85,7 +91,8 @@ export async function getConceptDetail(id: string): Promise<SubmissionDetail | n
             status: mapStage(concept.stage),
             sections,
         };
-    } catch {
+    } catch (err) {
+        console.error('[getConceptDetail] failed:', err);
         return null;
     }
 }
