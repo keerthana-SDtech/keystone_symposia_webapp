@@ -1,6 +1,7 @@
 {
     "name": "Keystone Symposia",
     "logo": "/logo.svg",
+    "logoDark": "/logo-dark.svg",
     "logoWidth": "auto",
     "logoHeight": "30px",
     "colors": {
