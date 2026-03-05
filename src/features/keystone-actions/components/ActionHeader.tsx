@@ -56,7 +56,7 @@ export const ActionHeader = ({ title, status, onBack, onActionSubmit, onViewActi
                         View Activity Timeline
                     </Button>
 
-                    {status !== 'Rejected' && (
+                    {status === 'New Submission' && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button className="bg-[#581585] hover:bg-[#47116b] text-white text-[13px] font-medium gap-2">
@@ -65,22 +65,18 @@ export const ActionHeader = ({ title, status, onBack, onActionSubmit, onViewActi
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-[120px] rounded-[8px] p-1.5 border-gray-200">
-                                {status !== 'Shortlisted' && (
-                                    <DropdownMenuItem
-                                        className="text-[14px] font-normal cursor-pointer py-2 px-3 text-gray-800 focus:bg-gray-100 focus:text-gray-900"
-                                        onClick={() => openModal('Shortlist')}
-                                    >
-                                        Shortlist
-                                    </DropdownMenuItem>
-                                )}
-                                {status !== 'Banked' && (
-                                    <DropdownMenuItem
-                                        className="text-[14px] font-normal cursor-pointer py-2 px-3 text-gray-800 focus:bg-gray-100 focus:text-gray-900"
-                                        onClick={() => openModal('Bank')}
-                                    >
-                                        Bank
-                                    </DropdownMenuItem>
-                                )}
+                                <DropdownMenuItem
+                                    className="text-[14px] font-normal cursor-pointer py-2 px-3 text-gray-800 focus:bg-gray-100 focus:text-gray-900"
+                                    onClick={() => openModal('Shortlist')}
+                                >
+                                    Shortlist
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                    className="text-[14px] font-normal cursor-pointer py-2 px-3 text-gray-800 focus:bg-gray-100 focus:text-gray-900"
+                                    onClick={() => openModal('Bank')}
+                                >
+                                    Bank
+                                </DropdownMenuItem>
                                 <DropdownMenuItem
                                     className="text-[14px] font-normal cursor-pointer py-2 px-3 text-gray-800 focus:bg-gray-100 focus:text-gray-900"
                                     onClick={() => openModal('Reject')}
