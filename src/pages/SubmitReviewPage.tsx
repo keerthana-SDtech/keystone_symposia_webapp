@@ -1,8 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { FileText, User, BookOpen } from 'lucide-react';
+import { File, User } from 'lucide-react';
 import { PageShell } from '../components/layout/PageShell';
 import { BackgroundDecorations } from '../components/layout/BackgroundDecorations';
 import { MultiStepJsonForm } from '../features/json-forms/components/multi-step-json-form';
+import reviewImage from '../assets/image.png';
 import {
   reviewJsonSchema,
   reviewStepUiSchemas,
@@ -10,7 +11,11 @@ import {
 } from '../features/json-forms/schemas/review.schemas';
 import { STEPS, SUBMIT_REVIEW_PAGE_CONTENT } from '../features/review/data/reviewFormConstants';
 
-const STEP_ICONS = [<FileText />, <User />, <BookOpen />];
+const STEP_ICONS = [
+    <div className="flex items-center justify-center w-[30px] h-[30px] rounded-md bg-[#F9FAFB] p-[5px] mr-[6.25px]"><File className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" /></div>,
+    <div className="flex items-center justify-center w-[30px] h-[30px] rounded-md bg-[#F9FAFB] p-[5px] mr-[6.25px]"><User className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" /></div>,
+    <div className="flex items-center justify-center w-[30px] h-[30px] rounded-md bg-[#F9FAFB] p-[5px] mr-[6.25px]"><img src={reviewImage} alt="Review" className="h-[20px] w-[20px]" /></div>
+];
 
 export default function SubmitReviewPage() {
   const navigate = useNavigate();

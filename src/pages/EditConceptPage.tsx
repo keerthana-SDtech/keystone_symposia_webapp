@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, FileText, Loader2 } from "lucide-react";
+import { ChevronLeft, File, Loader2 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { PageShell } from "../components/layout/PageShell";
 import { BackgroundDecorations } from "../components/layout/BackgroundDecorations";
@@ -111,7 +111,7 @@ export default function EditConceptPage() {
                     {/* Form panel */}
                     <div className="flex-1 bg-white rounded-[10px] border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col">
                         <div className="px-8 py-5 border-b border-gray-200 flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-gray-400 stroke-[1.5]" />
+                            <File className="h-4 w-4 text-gray-400 stroke-[1.5]" />
                             <span className="text-[15px] font-semibold text-[#111827]">
                                 {sections.find(s => s.id === currentSection)?.label ?? 'Concept Overview'}
                             </span>

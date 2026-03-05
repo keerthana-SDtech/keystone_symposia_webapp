@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PageShell } from "../components/layout/PageShell";
 import { DynamicForm, type DynamicFormRef } from "../features/form-submission/components/dynamic-form";
 import { useFormSubmission } from "../features/form-submission/hooks/use-form-submission";
-import { Loader2, FileText, UserRound } from "lucide-react";
+import { Loader2, File, User } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { cn } from "../lib/utils";
 import { useAuthContext } from "../app/providers/useAuthContext";
@@ -73,6 +73,20 @@ export default function SubmissionPage() {
     const activeIndex = sections.findIndex(s => s.id === activeSection);
     const isLastStep = activeIndex === sections.length - 1;
     const isFirstStep = activeIndex === 0;
+
+
+    const getSectionIcon = (sectionTitle: string) => {
+        const title = sectionTitle.toLowerCase();
+        if (title.includes('concept overview')) {
+            return <File className="h-[30px] w-[30px] mr-[6.25px] text-gray-400 stroke-[1.5] rounded-[5px] p-[5px] bg-[#F9FAFB]" />;
+        } else if (title.includes('rationale')) {
+            return <img src="/image.png" alt="Conference Rationale" className="h-[30px] w-[30px] mr-[6.25px] rounded-[5px] p-[5px] bg-[#F9FAFB]" />;
+        } else if (title.includes('conference') || title.includes('organizer')) {
+            return <User className="h-[30px] w-[30px] mr-[6.25px] text-gray-400 stroke-[1.5] rounded-[5px] p-[5px] bg-[#F9FAFB]" />;
+        } else {
+            return <File className="h-[30px] w-[30px] mr-[6.25px] text-gray-400 stroke-[1.5] rounded-[5px] p-[5px] bg-[#F9FAFB]" />;
+        }
+    };
 
     // Auto-scroll logic removed as mobile now only shows 3 adjacent steps
     // (Container will naturally center the trio via flex utilities)
@@ -168,10 +182,7 @@ export default function SubmissionPage() {
                         <div className="flex-1 bg-white rounded-[10px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-gray-200 min-h-[500px] z-10 flex flex-col pt-1 relative">
                             <div className="px-5 md:px-8 py-4 md:py-5 border-b border-gray-200 flex justify-between items-center bg-white rounded-t-[10px]">
                                 <div className="flex items-center text-[#111827] font-semibold text-[15px] md:text-[16px]">
-                                    {definition.sections.find(s => s.id === activeSection)?.icon === 'user'
-                                        ? <UserRound className="h-[18px] w-[18px] mr-2 text-gray-400 stroke-[1.5]" />
-                                        : <FileText className="h-[18px] w-[18px] mr-2 text-gray-400 stroke-[1.5]" />
-                                    }
+                                    {getSectionIcon(sections.find(s => s.id === activeSection)?.label || "Concept Overview")}
                                     {sections.find(s => s.id === activeSection)?.label || "Concept Overview"}
                                 </div>
                                 <div className="text-[12px] md:text-[13px] text-gray-500 font-medium">

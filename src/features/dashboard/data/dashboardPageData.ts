@@ -20,12 +20,12 @@ export const DASHBOARD_METRIC_CARDS = [
     "id": "proposal-submitted",
     "value": "10",
     "label": "Proposal Submitted",
-    "icon": "Loader"
+    "icon": "LoaderCircle"
   },
   {
     "id": "revision-required",
     "value": "46",
     "label": "Revision Required",
-    "icon": "Alert"
+    "icon": "BellDot"
   }
 ];

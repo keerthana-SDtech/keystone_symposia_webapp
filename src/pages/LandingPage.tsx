@@ -1,14 +1,15 @@
-import { Clock, Users, Focus, LayoutDashboard } from "lucide-react";
+import { Clock, Focus, LayoutDashboard } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LANDING_PAGE_CONTENT, LANDING_PAGE_FEATURES } from "../features/landing/data/landingPageData";
 import { Header } from "../components/layout/Header";
+import groupIcon from "../assets/group.png";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-    "Focus": <Focus className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
-    "Users": <Users className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
-    "Clock": <Clock className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
-    "LayoutDashboard": <LayoutDashboard className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
+    "Focus": <div className="flex items-center justify-center w-[40px] h-[40px] rounded-lg bg-[#F9FAFB] p-2"><Focus className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" /></div>,
+    "Users": <div className="flex items-center justify-center w-[40px] h-[40px] rounded-lg bg-[#F9FAFB] p-2"><img src={groupIcon} alt="Community Impact" className="h-[20px] w-[20px]" /></div>,
+    "Clock": <div className="flex items-center justify-center w-[40px] h-[40px] rounded-lg bg-[#F9FAFB] p-2"><Clock className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" /></div>,
+    "LayoutDashboard": <div className="flex items-center justify-center w-[40px] h-[40px] rounded-lg bg-[#F9FAFB] p-2"><LayoutDashboard className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" /></div>,
 };
 
 export default function LandingPage() {
