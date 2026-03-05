@@ -120,3 +120,4 @@ export async function fetchConcepts({ cycleId, stage, sort, filter }: ConceptsQu
     const submissions = items.map(c => mapConcept(c, userMap, categoryMap));
     return { submissions, metrics: buildMetrics(submissions) };
 }
+

@@ -27,6 +27,7 @@ export default function SubmissionPage() {
     const [isActiveValid, setIsActiveValid] = useState(false);
     const [completedSteps, setCompletedSteps] = useState<string[]>([]);
     const [attemptedSteps, setAttemptedSteps] = useState<string[]>([]);
+    const [sectionErrors, setSectionErrors] = useState<Record<string, number>>({});
     const formRef = useRef<DynamicFormRef>(null);
 
     if (isLoading) {
@@ -82,7 +83,14 @@ export default function SubmissionPage() {
         }
 
         const isValid = await formRef.current?.validateActiveSection();
-        if (!isValid) return;
+        if (!isValid) {
+            // Show error count in stepper for current section
+            setSectionErrors(prev => ({ ...prev, [activeSection]: 1 }));
+            return;
+        }
+
+        // Clear error for this section now that it's valid
+        setSectionErrors(prev => { const next = { ...prev }; delete next[activeSection]; return next; });
 
         if (isLastStep) {
             formRef.current?.submitForm();
@@ -153,6 +161,7 @@ export default function SubmissionPage() {
                             attemptedSteps={attemptedSteps}
                             isActiveValid={isActiveValid}
                             onSectionChange={setActiveSection}
+                            sectionErrors={sectionErrors}
                         />
 
                         {/* Right Content */}

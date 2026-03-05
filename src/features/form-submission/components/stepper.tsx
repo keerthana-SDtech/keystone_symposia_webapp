@@ -10,6 +10,8 @@ interface StepperProps {
     attemptedSteps: string[];
     isActiveValid: boolean;
     onSectionChange: (id: string) => void;
+    /** Map of sectionId → error count (from validateAll) */
+    sectionErrors?: Record<string, number>;
 }
 
 export function Stepper({
@@ -19,7 +21,8 @@ export function Stepper({
     completedSteps,
     attemptedSteps,
     isActiveValid,
-    onSectionChange
+    onSectionChange,
+    sectionErrors = {},
 }: StepperProps) {
     const stepperContainerRef = useRef<HTMLDivElement>(null);
     const activeNodeRef = useRef<HTMLDivElement>(null);
@@ -81,7 +84,7 @@ export function Stepper({
                                     {isCompleted ? <Check className="w-[18px] h-[18px] stroke-[2.5]" /> : (index + 1)}
                                 </div>
 
-                                {/* Label */}
+                                {/* Label + error count */}
                                 <div className={cn(
                                     "md:ml-4 mt-2 md:mt-0 md:pt-[3px] transition-colors tracking-tight text-center md:text-left px-2 md:px-0 w-full md:w-auto",
                                     "hidden md:block",
@@ -91,6 +94,11 @@ export function Stepper({
                                         : "text-[#9ca3af] md:text-[#6b7280] group-hover:text-[#374151] text-[11px] md:text-[15px]"
                                 )}>
                                     {section.label}
+                                    {(sectionErrors[section.id] ?? 0) > 0 && (
+                                        <p className="text-[11px] text-red-500 font-medium mt-0.5">
+                                            {sectionErrors[section.id]} open item{sectionErrors[section.id] > 1 ? 's' : ''}
+                                        </p>
+                                    )}
                                 </div>
                             </div>
 
