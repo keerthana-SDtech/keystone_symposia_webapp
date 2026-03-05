@@ -11,7 +11,7 @@ export default function DashboardPage() {
                 <div className="absolute top-[30%] right-[10%] w-[1200px] h-[1200px] rounded-full border-[1.5px] border-gray-50" />
             </div>
 
-            <div className="w-full max-w-[1200px] mx-auto pt-10 px-8 relative z-10">
+            <div className="w-full max-w-[1650px] mx-auto pt-10 px-8 relative z-10">
                 <DashboardView />
             </div>
         </PageShell>

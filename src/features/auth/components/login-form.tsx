@@ -18,7 +18,7 @@ interface LoginFormProps {
 
 export const LoginForm = ({ schema, uiSchema, variant = 'external' }: LoginFormProps) => {
     const { login, isLoading, error } = useAuth();
-    const { name, logo, logoWidth, logoHeight } = useTenant();
+    const { name, logo, logoDark, logoWidth, logoHeight } = useTenant();
 
     const [data, setData] = useState<Record<string, any>>({ email: "", password: "" });
     const [errors, setErrors] = useState<ErrorObject[]>([]);
@@ -41,7 +41,7 @@ export const LoginForm = ({ schema, uiSchema, variant = 'external' }: LoginFormP
         <div className="w-full">
             <div className="flex flex-col items-start mb-10">
                 <img
-                    src={logo}
+                    src={logoDark ?? logo}
                     alt={name}
                     style={{ width: logoWidth, height: logoHeight }}
                     className="mb-8 object-contain"

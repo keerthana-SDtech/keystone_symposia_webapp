@@ -4,6 +4,7 @@ import defaultConfig from "../../config/tenant.json";
 interface TenantConfig {
     name: string;
     logo: string;
+    logoDark?: string;
     logoWidth?: string;
     logoHeight?: string;
     colors: {
