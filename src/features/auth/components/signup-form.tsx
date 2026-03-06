@@ -7,6 +7,7 @@ import { useAuth } from "../hooks/use-auth";
 import { Button } from "../../../components/ui/button";
 import { customRenderers } from "../../../features/json-forms/renderers/renderers";
 import { useTenant } from "../../../app/providers/TenantProvider";
+import { SIGNUP_PAGE_CONTENT } from "../../../pages/signup/data/signupPageData";
 
 interface SignupFormProps {
     schema: JsonSchema;
@@ -56,9 +57,9 @@ export const SignupForm = ({ schema, uiSchema }: SignupFormProps) => {
                     style={{ width: logoWidth, height: logoHeight }}
                     className="mb-8 object-contain"
                 />
-                <h2 className="text-[30px] font-bold text-[#111827] mb-3">Create Account</h2>
+                <h2 className="text-[30px] font-bold text-[#111827] mb-3">{SIGNUP_PAGE_CONTENT.heading}</h2>
                 <p className="text-[#6b7280] text-[14.5px]">
-                    Join {name} to submit your scientific concepts
+                    {SIGNUP_PAGE_CONTENT.subheadingPrefix}{name}{SIGNUP_PAGE_CONTENT.subheadingSuffix}
                 </p>
             </div>
 
@@ -84,13 +85,13 @@ export const SignupForm = ({ schema, uiSchema }: SignupFormProps) => {
                     disabled={isLoading}
                     className="w-full bg-primary hover:opacity-90 text-primary-foreground h-[46px] text-[15px] font-normal rounded-md shadow-sm hover:shadow-md transition-all mt-6"
                 >
-                    {isLoading ? "Creating Account..." : "Sign Up"}
+                    {isLoading ? SIGNUP_PAGE_CONTENT.signUpButtonLoading : SIGNUP_PAGE_CONTENT.signUpButton}
                 </Button>
 
                 <p className="text-center text-[14px] text-[#374151] mt-6">
-                    Already have an account?{" "}
+                    {SIGNUP_PAGE_CONTENT.alreadyHaveAccount}{" "}
                     <Link to="/" className="text-primary font-medium hover:underline">
-                        Login
+                        {SIGNUP_PAGE_CONTENT.loginLink}
                     </Link>
                 </p>
             </form>

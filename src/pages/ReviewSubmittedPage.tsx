@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { PageShell } from "../components/layout/PageShell";
 import { BackgroundDecorations } from "../components/layout/BackgroundDecorations";
 import { SuccessCard } from "../components/ui/success-card";
-import { REVIEW_SUBMITTED_PAGE_CONTENT } from "../features/review/data/reviewFormConstants";
+import { REVIEW_SUBMITTED_PAGE_CONTENT } from "../features/review/data/submitReviewData";
 
 export default function ReviewSubmittedPage() {
   const navigate = useNavigate();

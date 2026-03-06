@@ -11,8 +11,8 @@ export * from './components/MetricCards';
 export * from './hooks/useSubmissionsTable';
 export * from './hooks/useSubmissionsQuery';
 
-// Constants
-export * from './constants/statusConfig';
+// Data
+export * from './data/dashboardPageData';
 
 // Types
 export * from './types';

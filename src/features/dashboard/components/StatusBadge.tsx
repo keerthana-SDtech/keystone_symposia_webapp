@@ -1,5 +1,5 @@
 import { cn } from '../../../lib/utils';
-import { statusConfig, fallbackStatus } from '../constants/statusConfig';
+import { STATUS_CONFIG, FALLBACK_STATUS } from '../data/dashboardPageData';
 import type { SubmissionStatus } from '../types';
 
 interface StatusBadgeProps {
@@ -7,7 +7,7 @@ interface StatusBadgeProps {
 }
 
 export const StatusBadge = ({ status }: StatusBadgeProps) => {
-    const style = statusConfig[status] ?? fallbackStatus;
+    const style = STATUS_CONFIG[status] ?? FALLBACK_STATUS;
     return (
         <div className={cn(
             'inline-flex items-center gap-2 px-3 py-1 rounded-full border bg-white text-[13px]',

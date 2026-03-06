@@ -6,8 +6,8 @@ import { Button } from "../components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
 import { ConceptOverviewTab } from "../features/review/components/ConceptOverviewTab";
 import { ReviewQuestionnaireTab } from "../features/review/components/ReviewQuestionnaireTab";
-
 import { MOCK_CONCEPTS } from "../features/review/data/mockConcepts";
+import { REVIEW_CONCEPT_PAGE_CONTENT } from "../features/review/data/reviewConceptData";
 
 export default function ReviewConceptPage() {
   const navigate = useNavigate();
@@ -27,11 +27,11 @@ export default function ReviewConceptPage() {
         {/* Breadcrumb & Header */}
         <div className="flex justify-between items-center mb-8">
           <div className="text-[15px] font-medium text-slate-500">
-            <span 
+            <span
               className="cursor-pointer hover:text-slate-800 transition-colors"
               onClick={() => navigate('/reviewer/dashboard')}
             >
-              Dashboard
+              {REVIEW_CONCEPT_PAGE_CONTENT.breadcrumb.dashboard}
             </span>
             <span className="mx-2">/</span>
             <span className="text-slate-800 font-semibold">
@@ -39,29 +39,29 @@ export default function ReviewConceptPage() {
             </span>
           </div>
 
-          <Button 
+          <Button
             type="button"
             className="bg-[#58008e] hover:bg-[#4a0078] text-white px-6 font-medium rounded-md"
             onClick={() => navigate(`/reviewer/review/${concept.id}/submit`)}
           >
-            Submit Review
+            {REVIEW_CONCEPT_PAGE_CONTENT.submitReviewButton}
           </Button>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-slate-100 p-1.5 rounded-lg inline-flex gap-1 mb-8">
-            <TabsTrigger 
-              value="overview"
+            <TabsTrigger
+              value={REVIEW_CONCEPT_PAGE_CONTENT.tabs.overview.value}
               className="px-6 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-slate-600 data-[state=active]:text-slate-900 font-medium transition-all"
             >
-              Overview
+              {REVIEW_CONCEPT_PAGE_CONTENT.tabs.overview.label}
             </TabsTrigger>
-            <TabsTrigger 
-              value="reviews"
+            <TabsTrigger
+              value={REVIEW_CONCEPT_PAGE_CONTENT.tabs.reviews.value}
               className="px-6 py-2 rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm text-slate-600 data-[state=active]:text-slate-900 font-medium transition-all"
             >
-              Reviews
+              {REVIEW_CONCEPT_PAGE_CONTENT.tabs.reviews.label}
             </TabsTrigger>
           </TabsList>
 

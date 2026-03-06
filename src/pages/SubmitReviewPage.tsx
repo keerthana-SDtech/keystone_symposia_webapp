@@ -8,7 +8,7 @@ import {
   reviewStepUiSchemas,
   REVIEW_STEP_FIELDS,
 } from '../features/json-forms/schemas/review.schemas';
-import { STEPS, SUBMIT_REVIEW_PAGE_CONTENT } from '../features/review/data/reviewFormConstants';
+import { REVIEW_STEPS as STEPS, SUBMIT_REVIEW_PAGE_CONTENT } from '../features/review/data/submitReviewData';
 
 const STEP_ICONS = [<FileText />, <User />, <BookOpen />];
 

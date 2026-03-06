@@ -1,18 +1,7 @@
 import type { JsonSchema, UISchemaElement } from '@jsonforms/core';
+import { GENDERS, AFFILIATIONS, OCCUPATIONS, UR_OPTIONS } from '../../organizer/data/submitProposalData';
 
-// ─── Enum constants ────────────────────────────────────────────────────────────
-
-export const GENDERS = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
-export const AFFILIATIONS = ['Academic', 'Industry', 'Government', 'Non-profit', 'Other'];
-export const OCCUPATIONS = [
-  'Professor',
-  'Researcher',
-  'Post-doctoral Fellow',
-  'PhD Student',
-  'Industry Scientist',
-  'Other',
-];
-export const UR_OPTIONS = ['Yes', 'No', 'Prefer not to say'];
+export { GENDERS, AFFILIATIONS, OCCUPATIONS, UR_OPTIONS };
 
 // ─── Full JSON Schema ─────────────────────────────────────────────────────────
 

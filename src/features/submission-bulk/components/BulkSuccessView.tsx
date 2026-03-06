@@ -1,6 +1,7 @@
-import { Check, Mail } from "lucide-react";
+import { Mail } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { useAuthContext } from "../../../app/providers/useAuthContext";
+import { SubmissionSuccessCard } from "../../form-submission/components/SubmissionSuccessCard";
 
 interface BulkSuccessViewProps {
     onReturnToHome: () => void;
@@ -13,21 +14,11 @@ export function BulkSuccessView({ onReturnToHome, onViewSubmission, onSubmitNew 
     const isExternal = user?.role === "external_scientist";
 
     return (
-        <div className="bg-white rounded-[10px] shadow-[0_4px_24px_rgba(0,0,0,0.03)] border border-gray-200 p-12 text-center w-full mt-2">
-            <div className="mx-auto w-14 h-14 bg-[#f8f9fa] rounded-xl flex items-center justify-center mb-6">
-                <div className="w-[34px] h-[34px] rounded-full border border-[#56b47c] flex items-center justify-center bg-transparent">
-                    <Check className="w-[18px] h-[18px] text-[#56b47c] stroke-[2]" />
-                </div>
-            </div>
-
-            <h2 className="text-[22px] font-bold text-[#111827] mb-3 tracking-tight">
-                Bulk Upload Successfully Submitted !
-            </h2>
-
-            <p className="text-[15px] text-[#6b7280] mb-8 font-medium">
-                Thank you for submitting your conference concepts
-            </p>
-
+        <SubmissionSuccessCard
+            title="Bulk Upload Successfully Submitted !"
+            subtitle="Thank you for submitting your conference concepts"
+            className="w-full mt-2"
+        >
             {isExternal ? (
                 <div className="max-w-md mx-auto">
                     <div className="bg-[#f9fafb] border border-gray-200 rounded-lg p-5 mb-8 text-left flex items-start gap-4">
@@ -67,6 +58,6 @@ export function BulkSuccessView({ onReturnToHome, onViewSubmission, onSubmitNew 
                     </Button>
                 </div>
             )}
-        </div>
+        </SubmissionSuccessCard>
     );
 }

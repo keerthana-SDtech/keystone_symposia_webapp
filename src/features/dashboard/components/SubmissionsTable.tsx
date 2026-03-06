@@ -9,6 +9,9 @@ import { FilterPanel } from './FilterPanel';
 import { StatusBadge } from './StatusBadge';
 import { useSubmissionsTable } from '../hooks/useSubmissionsTable';
 import type { SubmissionsTableProps } from '../types';
+import { TABLE_COLUMNS, DASHBOARD_PAGE_CONTENT } from '../data/dashboardPageData';
+import { LoadingSpinner } from '../../../components/feedback/LoadingSpinner';
+import { EmptyState } from '../../../components/feedback/EmptyState';
 
 export const SubmissionsTable = ({
     title,
@@ -65,7 +68,7 @@ export const SubmissionsTable = ({
     if (loading) {
         return (
             <div className="w-full py-20 flex justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                <LoadingSpinner />
             </div>
         );
     }
@@ -141,11 +144,11 @@ export const SubmissionsTable = ({
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-[#FAFAFA] border-b border-gray-200">
-                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[30%]">Title</th>
-                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[15%]">Submitter</th>
-                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[20%]">Category</th>
-                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[15%]">Date</th>
-                                    <th className="py-4 px-6 text-[13px] font-medium text-gray-500 w-[20%]">Status</th>
+                                    {TABLE_COLUMNS.map(col => (
+                                        <th key={col.key} className={`py-4 px-6 text-[13px] font-medium text-gray-500 ${col.width}`}>
+                                            {col.label}
+                                        </th>
+                                    ))}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -170,16 +173,12 @@ export const SubmissionsTable = ({
 
                     {/* Infinite scroll sentinel */}
                     <div ref={sentinelRef} className="h-10 flex items-center justify-center" aria-hidden="true">
-                        {isFetchingNextPage && (
-                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary" />
-                        )}
+                        {hasMore && <LoadingSpinner size="sm" />}
                     </div>
 
                     {/* Empty state */}
-                    {submissions.length === 0 && (
-                        <div className="py-12 flex items-center justify-center">
-                            <p className="text-gray-500 text-sm">No submissions found.</p>
-                        </div>
+                    {filteredSubmissions.length === 0 && (
+                        <EmptyState message={DASHBOARD_PAGE_CONTENT.emptyState} />
                     )}
 
                 </div>
