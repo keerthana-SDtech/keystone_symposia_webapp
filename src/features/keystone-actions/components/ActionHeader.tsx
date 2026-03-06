@@ -57,7 +57,7 @@ export const ActionHeader = ({ title, status, onBack, onActionSubmit, onViewActi
                         {KEYSTONE_ACTIONS_CONTENT.buttons.viewActivityTimeline}
                     </Button>
 
-                    {status !== 'Rejected' && (
+                    {status === 'New Submission' && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button className="bg-[#581585] hover:bg-[#47116b] text-white text-[13px] font-medium gap-2">

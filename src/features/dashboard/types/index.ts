@@ -1,5 +1,3 @@
-import type { RefObject } from 'react';
-
 // ── Domain types ──────────────────────────────────────────────────────────────
 
 export type SubmissionStatus =
@@ -86,34 +84,27 @@ export interface StatusBadgeProps {
 export interface SubmissionsTableProps {
     title: string;
     submissions: SubmissionSummary[];
+    total?: number;
     metrics: DashboardMetric[];
     loading: boolean;
     navigationBasePath: string;
     submitButton?: SubmitButtonConfig;
     searchPlaceholder?: string;
     showMetrics?: boolean;
-    batchSize?: number;
     accessRestriction?: AccessRestrictionConfig;
     sortOption: SortOption;
     onSortSelect: (option: SortOption) => void;
     filterParams: FilterParams;
     onFilterChange: (params: FilterParams) => void;
-}
-
-// ── Hook types ────────────────────────────────────────────────────────────────
-
-export interface UseSubmissionsTableOptions {
-    submissions: SubmissionSummary[];
-    batchSize?: number;
-}
-
-export interface UseSubmissionsTableResult {
-    searchTerm: string;
-    setSearchTerm: (term: string) => void;
+    // Server-side search
+    search: string;
+    onSearchChange: (value: string) => void;
+    // Metric card selection
     selectedMetric: DashboardMetric | null;
-    setSelectedMetric: (metric: DashboardMetric | null) => void;
-    filteredSubmissions: SubmissionSummary[];
-    visibleRows: SubmissionSummary[];
+    onMetricClick: (metric: DashboardMetric) => void;
+    onMetricClear: () => void;
+    // Infinite scroll
     hasMore: boolean;
-    sentinelRef: RefObject<HTMLDivElement | null>;
+    isFetchingNextPage: boolean;
+    fetchNextPage: () => void;
 }
