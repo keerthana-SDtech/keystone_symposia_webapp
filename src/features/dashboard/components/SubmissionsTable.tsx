@@ -34,7 +34,6 @@ export const SubmissionsTable = ({
     onMetricClick,
     onMetricClear,
     hasMore,
-    isFetchingNextPage,
     fetchNextPage,
 }: SubmissionsTableProps) => {
     const navigate = useNavigate();
@@ -177,7 +176,7 @@ export const SubmissionsTable = ({
                     </div>
 
                     {/* Empty state */}
-                    {filteredSubmissions.length === 0 && (
+                    {submissions.length === 0 && (
                         <EmptyState message={DASHBOARD_PAGE_CONTENT.emptyState} />
                     )}
 

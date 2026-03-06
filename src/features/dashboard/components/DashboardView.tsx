@@ -4,7 +4,7 @@ import { useAuthContext } from '../../../app/providers/useAuthContext';
 import { useSubmissionsQuery } from '../hooks/useSubmissionsQuery';
 import { buildMetrics, STATUS_TO_STAGES } from '../api/conceptsApi';
 import { SubmissionsTable } from './SubmissionsTable';
-import type { SortOption, FilterParams } from '../types';
+import type { SortOption, FilterParams, DashboardMetric } from '../types';
 import { DASHBOARD_PAGE_CONTENT } from '../data/dashboardPageData';
 
 export const DashboardView = () => {
@@ -39,7 +39,6 @@ export const DashboardView = () => {
     );
 
     const submissions = data?.pages.flatMap(p => p.data) ?? [];
-    const total = data?.pages[0]?.total;
     const stageCounts = data?.pages[0]?.stageCounts ?? {};
     const metrics = buildMetrics(stageCounts);
 
@@ -59,8 +58,8 @@ export const DashboardView = () => {
     return (
         <SubmissionsTable
             title={DASHBOARD_PAGE_CONTENT.pageTitle}
-            submissions={data?.submissions ?? []}
-            metrics={data?.metrics ?? []}
+            submissions={submissions}
+            metrics={metrics}
             loading={isLoading}
             navigationBasePath="/dashboard"
             submitButton={{

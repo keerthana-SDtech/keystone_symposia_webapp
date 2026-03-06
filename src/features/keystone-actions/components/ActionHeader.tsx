@@ -9,11 +9,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ActionModal } from "./ActionModal";
 import type { ActionType } from "../types";
+import type { SubmissionStatus } from "../../dashboard/types";
 import { KEYSTONE_ACTIONS_CONTENT, ACTION_ITEMS } from "../data/keystoneActionsData";
 
 interface ActionHeaderProps {
     title: string;
-    status: string;
+    status: SubmissionStatus;
     onBack: () => void;
     onActionSubmit: (type: ActionType, comments: string) => void;
     onViewActivityTimeline: () => void;
@@ -32,6 +33,11 @@ export const ActionHeader = ({ title, status, onBack, onActionSubmit, onViewActi
     const closeModal = () => {
         setModalConfig({ isOpen: false, type: null });
     };
+
+    const visibleActions = ACTION_ITEMS.filter(item =>
+        !(item.type === 'Shortlist' && status === 'Shortlisted') &&
+        !(item.type === 'Bank' && status === 'Banked')
+    );
 
     return (
         <>
@@ -57,7 +63,7 @@ export const ActionHeader = ({ title, status, onBack, onActionSubmit, onViewActi
                         {KEYSTONE_ACTIONS_CONTENT.buttons.viewActivityTimeline}
                     </Button>
 
-                    {status === 'New Submission' && (
+                    {visibleActions.length > 0 && (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button className="bg-[#581585] hover:bg-[#47116b] text-white text-[13px] font-medium gap-2">
@@ -66,10 +72,7 @@ export const ActionHeader = ({ title, status, onBack, onActionSubmit, onViewActi
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-[120px] rounded-[8px] p-1.5 border-gray-200">
-                                {ACTION_ITEMS.filter(item =>
-                                    !(item.type === 'Shortlist' && status === 'Shortlisted') &&
-                                    !(item.type === 'Bank' && status === 'Banked')
-                                ).map(item => (
+                                {visibleActions.map(item => (
                                     <DropdownMenuItem
                                         key={item.type}
                                         className="text-[14px] font-normal cursor-pointer py-2 px-3 text-gray-800 focus:bg-gray-100 focus:text-gray-900"
