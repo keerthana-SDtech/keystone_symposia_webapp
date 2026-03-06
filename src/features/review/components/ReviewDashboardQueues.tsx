@@ -10,12 +10,18 @@ import {
 
 import { useNavigate } from "react-router-dom";
 import { MOCK_CONCEPTS } from "../data/mockConcepts";
+import {
+  REVIEW_DASHBOARD_CONTENT,
+  REVIEW_DASHBOARD_COLUMNS,
+  REVIEW_FILTER_OPTIONS,
+  REVIEW_SORT_OPTIONS,
+} from "../data/reviewDashboardData";
 
 export function ReviewDashboardQueues() {
   const navigate = useNavigate();
 
-  // Set a mock deadline (e.g., 2 days, 13 hours, 36 minutes from now)
-  const [timeLeft, setTimeLeft] = useState({ days: 2, hours: 13, minutes: 36 });
+  const { days: daysConfig, hours: hoursConfig, minutes: minutesConfig } = REVIEW_DASHBOARD_CONTENT.banner.timer;
+  const [timeLeft, setTimeLeft] = useState({ days: daysConfig.initial, hours: hoursConfig.initial, minutes: minutesConfig.initial });
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<"date-desc" | "date-asc" | "title-asc">("date-desc");
@@ -90,39 +96,39 @@ export function ReviewDashboardQueues() {
             <Clock3 className="text-slate-500 w-6 h-6" strokeWidth={1.5} />
           </div>
           <div className="flex flex-col flex-1">
-            <h2 className="text-lg font-semibold text-slate-800 leading-tight mb-1">Begin Your Review</h2>
-            <p className="text-sm text-slate-600">Submit your evaluations before the deadline to ensure your feedback is considered.</p>
+            <h2 className="text-lg font-semibold text-slate-800 leading-tight mb-1">{REVIEW_DASHBOARD_CONTENT.banner.heading}</h2>
+            <p className="text-sm text-slate-600">{REVIEW_DASHBOARD_CONTENT.banner.description}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-5 mr-6">
           <div className="flex flex-col items-center min-w-[50px]">
             <span className="text-3xl font-bold text-slate-800 leading-none mb-1">{String(timeLeft.days).padStart(2, '0')}</span>
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">days</span>
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">{daysConfig.label}</span>
           </div>
           <span className="text-2xl font-light text-slate-300 pb-4">:</span>
           <div className="flex flex-col items-center min-w-[50px]">
             <span className="text-3xl font-bold text-slate-800 leading-none mb-1">{String(timeLeft.hours).padStart(2, '0')}</span>
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">hours</span>
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">{hoursConfig.label}</span>
           </div>
           <span className="text-2xl font-light text-slate-300 pb-4">:</span>
           <div className="flex flex-col items-center min-w-[50px]">
             <span className="text-3xl font-bold text-slate-800 leading-none mb-1">{String(timeLeft.minutes).padStart(2, '0')}</span>
-            <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">minutes</span>
+            <span className="text-xs font-medium text-slate-400 uppercase tracking-widest">{minutesConfig.label}</span>
           </div>
         </div>
       </div>
 
       {/* Concepts Heading */}
-      <h1 className="text-3xl font-semibold text-slate-800 tracking-tight">Concepts ({MOCK_CONCEPTS.length})</h1>
+      <h1 className="text-3xl font-semibold text-slate-800 tracking-tight">{REVIEW_DASHBOARD_CONTENT.pageTitle} ({MOCK_CONCEPTS.length})</h1>
 
       {/* Table Container */}
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden pb-4">
         {/* Toolbar */}
         <div className="flex items-center justify-between p-4 border-b border-slate-100">
           <div className="relative w-80 flex items-center">
-            <Input 
-              placeholder="Search" 
+            <Input
+              placeholder={REVIEW_DASHBOARD_CONTENT.searchPlaceholder}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pr-9 bg-white border-slate-200 focus-visible:ring-1 focus-visible:ring-slate-300 shadow-none h-10 w-full"
@@ -138,15 +144,11 @@ export function ReviewDashboardQueues() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setFilterStatus("All")}>
-                  {filterStatus === "All" && "✓ "}All Statuses
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterStatus("Yet to Review")}>
-                  {filterStatus === "Yet to Review" && "✓ "}Yet to Review
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setFilterStatus("Reviewed")}>
-                  {filterStatus === "Reviewed" && "✓ "}Reviewed
-                </DropdownMenuItem>
+                {REVIEW_FILTER_OPTIONS.map(opt => (
+                  <DropdownMenuItem key={opt.value} onClick={() => setFilterStatus(opt.value)}>
+                    {filterStatus === opt.value && "✓ "}{opt.label}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -157,15 +159,11 @@ export function ReviewDashboardQueues() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setSortOrder("date-desc")}>
-                  Sort by Date (Newest)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("date-asc")}>
-                  Sort by Date (Oldest)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSortOrder("title-asc")}>
-                  Sort by Title (A-Z)
-                </DropdownMenuItem>
+                {REVIEW_SORT_OPTIONS.map(opt => (
+                  <DropdownMenuItem key={opt.value} onClick={() => setSortOrder(opt.value as typeof sortOrder)}>
+                    {opt.label}
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -176,11 +174,9 @@ export function ReviewDashboardQueues() {
           <table className="w-full text-sm text-left">
             <thead className="bg-[#F8FAFC] text-slate-500 font-medium border-y border-slate-100">
               <tr>
-                <th className="px-6 py-4 font-medium w-[35%]">Title</th>
-                <th className="px-6 py-4 font-medium w-[15%]">Submitter</th>
-                <th className="px-6 py-4 font-medium w-[20%]">Category</th>
-                <th className="px-6 py-4 font-medium w-[15%]">Date</th>
-                <th className="px-6 py-4 font-medium w-[15%]">Status</th>
+                {REVIEW_DASHBOARD_COLUMNS.map(col => (
+                  <th key={col.key} className={`px-6 py-4 font-medium ${col.width}`}>{col.label}</th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-600">

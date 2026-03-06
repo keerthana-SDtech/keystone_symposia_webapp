@@ -1,7 +1,7 @@
-export const STEPS = [
-  { "id": "concept-overview", "label": "Concept Overview" },
-  { "id": "organizer-details", "label": "Organizer Details" },
-  { "id": "conference-rationale", "label": "Conference Rationale" }
+export const REVIEW_STEPS = [
+  { id: "concept-overview",     label: "Concept Overview"     },
+  { id: "organizer-details",    label: "Organizer Details"    },
+  { id: "conference-rationale", label: "Conference Rationale" },
 ];
 
 export const INSTITUTES = [
@@ -12,7 +12,7 @@ export const INSTITUTES = [
   "University of Cambridge",
   "University of Oxford",
   "Yale University",
-  "Princeton University"
+  "Princeton University",
 ];
 
 export const SCIENTIFIC_CATEGORIES = [
@@ -24,35 +24,35 @@ export const SCIENTIFIC_CATEGORIES = [
   "Microbiology",
   "Cancer Biology",
   "Structural Biology",
-  "Bioinformatics"
+  "Bioinformatics",
 ];
 
 export const RELEVANCE_RATINGS = [
   "Highly Relevant",
   "Relevant",
   "Moderately Relevant",
-  "Not Relevant"
+  "Not Relevant",
 ];
 
 export const EXPERTISE_RATINGS = [
   "World-leading experts",
   "International experts",
   "National experts",
-  "Emerging researchers"
+  "Emerging researchers",
 ];
 
 export const SUBMIT_REVIEW_PAGE_CONTENT = {
-  "pageTitle": "Submit Review Questionnaire",
-  "buttons": {
-    "cancel": "Cancel",
-    "back": "Back",
-    "next": "Next",
-    "submit": "Submit Review"
-  }
+  pageTitle: "Submit Review Questionnaire",
+  buttons: {
+    cancel: "Cancel",
+    back:   "Back",
+    next:   "Next",
+    submit: "Submit Review",
+  },
 };
 
 export const REVIEW_SUBMITTED_PAGE_CONTENT = {
-  "title": "Review Questionnaire Submitted !",
-  "subtitle": "Thank you for submitting your review",
-  "cta": "Return to Home"
+  title:    "Review Questionnaire Submitted !",
+  subtitle: "Thank you for submitting your review",
+  cta:      "Return to Home",
 };

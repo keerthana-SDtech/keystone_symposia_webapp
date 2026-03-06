@@ -1,6 +1,7 @@
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SubmissionDetail } from "../types";
+import { ACTIVITY_TIMELINE_CONTENT } from "../data/keystoneActionsData";
 
 interface ActivityTimelineProps {
     isOpen: boolean;
@@ -23,7 +24,7 @@ export const ActivityTimeline = ({ isOpen, onClose, detail }: ActivityTimelinePr
             <div className="relative w-[500px] h-full bg-white flex flex-col shadow-2xl animate-in slide-in-from-right duration-200 z-10">
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                    <h2 className="text-[20px] font-semibold text-gray-900">Activity Timeline</h2>
+                    <h2 className="text-[20px] font-semibold text-gray-900">{ACTIVITY_TIMELINE_CONTENT.title}</h2>
                     <button
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -36,25 +37,23 @@ export const ActivityTimeline = ({ isOpen, onClose, detail }: ActivityTimelinePr
                 <div className="flex-1 overflow-y-auto p-8 relative">
                     <div className="relative pl-1">
 
-                        {/* Step 1: Submited */}
+                        {/* Step 1 */}
                         <div className="relative flex gap-4 pb-10">
-                            {/* Vertical Line Segment */}
                             <div className="absolute left-[15px] top-[32px] bottom-[-4px] w-[2px] bg-[#58B957] z-0" />
-
                             <div className="relative z-10 flex-shrink-0 w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center p-[3px]">
                                 <div className="w-full h-full rounded-full bg-[#58B957] flex items-center justify-center text-white">
                                     <Check className="w-3.5 h-3.5 stroke-[3]" />
                                 </div>
                             </div>
                             <div className="pt-1.5">
-                                <h4 className="text-[15px] font-semibold text-gray-900 mb-1 leading-tight">Concept Submitted</h4>
+                                <h4 className="text-[15px] font-semibold text-gray-900 mb-1 leading-tight">{ACTIVITY_TIMELINE_CONTENT.steps[0].heading}</h4>
                                 <p className="text-[14px] text-gray-500 leading-relaxed pr-6">
-                                    Submitted via public portal by Dr. Rachel Kim. Concept entered Keystone system as KS-2026-041.
+                                    {ACTIVITY_TIMELINE_CONTENT.steps[0].description}
                                 </p>
                             </div>
                         </div>
 
-                        {/* Step 2: Screening */}
+                        {/* Step 2 */}
                         <div className="relative flex gap-4">
                             <div className="relative z-10 flex-shrink-0 w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center p-[3px]">
                                 <div className="w-full h-full rounded-full bg-[#58B957] flex items-center justify-center text-white">
@@ -62,12 +61,11 @@ export const ActivityTimeline = ({ isOpen, onClose, detail }: ActivityTimelinePr
                                 </div>
                             </div>
                             <div className="pt-1.5 relative">
-                                <h4 className="text-[15px] font-semibold text-gray-900 mb-1 leading-tight">Screening</h4>
+                                <h4 className="text-[15px] font-semibold text-gray-900 mb-1 leading-tight">{ACTIVITY_TIMELINE_CONTENT.steps[1].heading}</h4>
                                 <p className="text-[14px] text-gray-500 leading-relaxed pr-6">
-                                    Reviewed. Concept deemed scientifically relevant and aligned with Keystone mission.
+                                    {ACTIVITY_TIMELINE_CONTENT.steps[1].description}
                                 </p>
 
-                                {/* Dynamic Status Pill */}
                                 {hasFinalStatus && (
                                     <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-gray-200 rounded-full text-[13px] font-medium text-gray-700 shadow-sm leading-none">
                                         <span className={`w-1.5 h-1.5 rounded-full ${isRejected ? 'bg-red-500' :
@@ -87,7 +85,7 @@ export const ActivityTimeline = ({ isOpen, onClose, detail }: ActivityTimelinePr
                         onClick={onClose}
                         className="bg-[#581585] hover:bg-[#47116b] text-white text-[14px] font-medium px-8 h-10 rounded-[6px]"
                     >
-                        Done
+                        {ACTIVITY_TIMELINE_CONTENT.doneButton}
                     </Button>
                 </div>
             </div>

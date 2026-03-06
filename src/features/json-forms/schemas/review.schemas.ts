@@ -4,7 +4,7 @@ import {
   SCIENTIFIC_CATEGORIES,
   RELEVANCE_RATINGS,
   EXPERTISE_RATINGS,
-} from '../../review/data/reviewFormConstants';
+} from '../../review/data/submitReviewData';
 
 // ─── Full JSON Schema ─────────────────────────────────────────────────────────
 

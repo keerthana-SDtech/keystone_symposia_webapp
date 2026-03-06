@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { X, ChevronDown } from 'lucide-react';
-import { SUBMISSION_STATUSES } from '../constants/statusConfig';
+import { SUBMISSION_STATUSES, FILTER_PANEL_CONTENT } from '../data/dashboardPageData';
 import type { FilterPanelProps, SubmissionStatus } from '../types';
 
 export const FilterPanel = ({ isOpen, filterParams, onApply, onClose }: FilterPanelProps) => {
@@ -65,7 +65,7 @@ export const FilterPanel = ({ isOpen, filterParams, onApply, onClose }: FilterPa
 
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-gray-200 flex items-center justify-between">
-                    <h2 className="text-xl font-semibold text-gray-900">Filter</h2>
+                    <h2 className="text-xl font-semibold text-gray-900">{FILTER_PANEL_CONTENT.title}</h2>
                     <button
                         onClick={onClose}
                         className="p-1 text-gray-400 hover:text-gray-600 rounded transition-colors"
@@ -80,7 +80,7 @@ export const FilterPanel = ({ isOpen, filterParams, onApply, onClose }: FilterPa
                     {/* Date range */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-gray-700">From Date</label>
+                            <label className="text-sm font-medium text-gray-700">{FILTER_PANEL_CONTENT.dateFrom}</label>
                             <input
                                 type="date"
                                 value={dateFrom}
@@ -89,7 +89,7 @@ export const FilterPanel = ({ isOpen, filterParams, onApply, onClose }: FilterPa
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-gray-700">To Date</label>
+                            <label className="text-sm font-medium text-gray-700">{FILTER_PANEL_CONTENT.dateTo}</label>
                             <input
                                 type="date"
                                 value={dateTo}
@@ -101,7 +101,7 @@ export const FilterPanel = ({ isOpen, filterParams, onApply, onClose }: FilterPa
 
                     {/* Status multi-select */}
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-gray-700">Status</label>
+                        <label className="text-sm font-medium text-gray-700">{FILTER_PANEL_CONTENT.statusLabel}</label>
                         <div ref={statusRef} className="relative">
 
                             {/* Trigger */}
@@ -111,7 +111,7 @@ export const FilterPanel = ({ isOpen, filterParams, onApply, onClose }: FilterPa
                                 className="w-full min-h-[40px] px-3 py-2 border border-gray-200 rounded-md text-sm text-left flex items-center justify-between gap-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
                             >
                                 {statuses.length === 0 ? (
-                                    <span className="text-gray-400">Select status</span>
+                                    <span className="text-gray-400">{FILTER_PANEL_CONTENT.statusPlaceholder}</span>
                                 ) : (
                                     <div className="flex flex-wrap gap-1.5">
                                         {statuses.map(s => (
@@ -164,20 +164,20 @@ export const FilterPanel = ({ isOpen, filterParams, onApply, onClose }: FilterPa
                         onClick={handleClearAll}
                         className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
                     >
-                        Clear All
+                        {FILTER_PANEL_CONTENT.clearAll}
                     </button>
                     <div className="flex items-center gap-3">
                         <button
                             onClick={onClose}
                             className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded-md hover:bg-gray-50 transition-colors"
                         >
-                            Cancel
+                            {FILTER_PANEL_CONTENT.cancel}
                         </button>
                         <button
                             onClick={handleDone}
                             className="px-4 py-2 text-sm text-white bg-primary hover:bg-primary/90 rounded-md transition-colors"
                         >
-                            Done
+                            {FILTER_PANEL_CONTENT.done}
                         </button>
                     </div>
                 </div>

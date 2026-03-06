@@ -6,6 +6,7 @@ import { PageShell } from "../components/layout/PageShell";
 import { BackgroundDecorations } from "../components/layout/BackgroundDecorations";
 import { DynamicForm, type DynamicFormRef } from "../features/form-submission/components/dynamic-form";
 import { useEditConcept } from "../features/keystone-actions/hooks/useEditConcept";
+import { EDIT_CONCEPT_PAGE_CONTENT } from "../features/edit-concept/data/editConceptData";
 
 export default function EditConceptPage() {
     const { id } = useParams<{ id: string }>();
@@ -27,10 +28,10 @@ export default function EditConceptPage() {
         return (
             <PageShell className="flex items-center justify-center bg-[#FAFBFD]">
                 <div className="text-center p-8 bg-white rounded-2xl shadow-xl max-w-md">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Error</h2>
-                    <p className="text-gray-600 mb-6">{error || "Something went wrong."}</p>
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">{EDIT_CONCEPT_PAGE_CONTENT.errorHeading}</h2>
+                    <p className="text-gray-600 mb-6">{error || EDIT_CONCEPT_PAGE_CONTENT.errorFallback}</p>
                     <Button onClick={() => navigate(`/dashboard/${id}`)} className="bg-primary hover:bg-primary/90">
-                        Go Back
+                        {EDIT_CONCEPT_PAGE_CONTENT.goBackButton}
                     </Button>
                 </div>
             </PageShell>
@@ -69,13 +70,13 @@ export default function EditConceptPage() {
                     >
                         <ChevronLeft className="h-5 w-5" />
                     </button>
-                    <h1 className="text-[26px] font-bold text-[#111827]">Edit Concept</h1>
+                    <h1 className="text-[26px] font-bold text-[#111827]">{EDIT_CONCEPT_PAGE_CONTENT.pageTitle}</h1>
                 </div>
 
                 <div className="flex gap-6 items-stretch min-h-[calc(90vh-150px)]">
                     {/* Sidebar */}
                     <div className="w-[240px] shrink-0 bg-white rounded-[10px] border border-gray-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] pt-6 pb-8">
-                        <h2 className="text-[16px] font-bold text-[#374151] px-6 mb-4 tracking-tight">Sections</h2>
+                        <h2 className="text-[16px] font-bold text-[#374151] px-6 mb-4 tracking-tight">{EDIT_CONCEPT_PAGE_CONTENT.sidebarHeading}</h2>
                         <div className="h-[1px] bg-gray-200 mb-5 mx-6" />
                         <nav className="flex flex-col gap-1 px-3">
                             {sections.map(s => {
@@ -113,7 +114,7 @@ export default function EditConceptPage() {
                         <div className="px-8 py-5 border-b border-gray-200 flex items-center gap-2">
                             <FileText className="h-4 w-4 text-gray-400 stroke-[1.5]" />
                             <span className="text-[15px] font-semibold text-[#111827]">
-                                {sections.find(s => s.id === currentSection)?.label ?? 'Concept Overview'}
+                                {sections.find(s => s.id === currentSection)?.label ?? EDIT_CONCEPT_PAGE_CONTENT.defaultSectionLabel}
                             </span>
                         </div>
                         <div className="px-8 py-8 flex-1">
@@ -140,14 +141,14 @@ export default function EditConceptPage() {
                     onClick={() => navigate(`/dashboard/${id}`)}
                     className="text-gray-700"
                 >
-                    Cancel
+                    {EDIT_CONCEPT_PAGE_CONTENT.cancelButton}
                 </Button>
                 <Button
                     onClick={handleSave}
                     disabled={isSaving}
                     className="bg-[#581585] hover:bg-[#47116b] text-white px-8"
                 >
-                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : EDIT_CONCEPT_PAGE_CONTENT.saveButton}
                 </Button>
             </div>
         </PageShell>

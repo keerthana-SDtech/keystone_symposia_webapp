@@ -9,6 +9,7 @@ import { Checkbox } from "../../../components/ui/checkbox";
 import { Label } from "../../../components/ui/label";
 import { customRenderers } from "../../../features/json-forms/renderers/renderers";
 import { useTenant } from "../../../app/providers/TenantProvider";
+import { LOGIN_PAGE_CONTENT } from "../../../pages/login/data/loginPageData";
 
 interface LoginFormProps {
     schema: JsonSchema;
@@ -46,9 +47,9 @@ export const LoginForm = ({ schema, uiSchema, variant = 'external' }: LoginFormP
                     style={{ width: logoWidth, height: logoHeight }}
                     className="mb-8 object-contain"
                 />
-                <h2 className="text-[30px] font-bold text-[#111827] mb-3">Welcome Back</h2>
+                <h2 className="text-[30px] font-bold text-[#111827] mb-3">{LOGIN_PAGE_CONTENT.heading}</h2>
                 <p className="text-[#6b7280] text-[14.5px]">
-                    Enter your credentials to login and submit concept
+                    {LOGIN_PAGE_CONTENT.subheading}
                 </p>
             </div>
 
@@ -77,12 +78,12 @@ export const LoginForm = ({ schema, uiSchema, variant = 'external' }: LoginFormP
                             className="w-[18px] h-[18px] border-gray-300 rounded-[4px] data-[state=checked]:bg-primary"
                         />
                         <Label htmlFor="rememberMe" className="text-[14px] text-[#374151] cursor-pointer font-normal">
-                            Remember Me
+                            {LOGIN_PAGE_CONTENT.rememberMe}
                         </Label>
                     </div>
                     {variant === 'external' && (
                         <Link to="/forgot-password" className="text-[14px] font-medium text-primary hover:underline">
-                            Forget Password?
+                            {LOGIN_PAGE_CONTENT.forgotPassword}
                         </Link>
                     )}
                 </div>
@@ -92,14 +93,14 @@ export const LoginForm = ({ schema, uiSchema, variant = 'external' }: LoginFormP
                     disabled={isLoading}
                     className="w-full bg-primary hover:opacity-90 text-primary-foreground h-[46px] text-[15px] font-normal rounded-md shadow-sm hover:shadow-md transition-all mt-6"
                 >
-                    {isLoading ? "Logging in..." : "Login"}
+                    {isLoading ? LOGIN_PAGE_CONTENT.loginButtonLoading : LOGIN_PAGE_CONTENT.loginButton}
                 </Button>
 
                 {variant === 'external' && (
                     <p className="text-center text-[14px] text-[#374151] mt-6">
-                        Don't have an account?{" "}
+                        {LOGIN_PAGE_CONTENT.noAccount}{" "}
                         <Link to="/signup" className="text-primary font-medium hover:underline">
-                            Sign Up
+                            {LOGIN_PAGE_CONTENT.signUpLink}
                         </Link>
                     </p>
                 )}

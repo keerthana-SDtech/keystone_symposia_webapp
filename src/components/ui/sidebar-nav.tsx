@@ -2,12 +2,12 @@ import { cn } from "../../lib/utils"
 
 export interface SidebarNavProps extends React.HTMLAttributes<HTMLDivElement> {
   items: {
-    href: string
+    href?: string
     title: string
   }[]
   activeItem?: string
   title?: string
-  onItemClick?: (href: string) => void
+  onItemClick?: (key: string) => void
 }
 
 export function SidebarNav({ className, items, activeItem, title = "Sections", onItemClick, ...props }: SidebarNavProps) {
@@ -17,23 +17,33 @@ export function SidebarNav({ className, items, activeItem, title = "Sections", o
       <div className="h-px bg-slate-300 mx-6 mb-4" />
       <nav className="flex flex-col">
         {items.map((item) => {
-          const isActive = activeItem === item.href
-          
+          const key = item.href ?? item.title
+          const isActive = activeItem === key
+          const itemClass = cn(
+            "block text-left px-6 py-4 font-medium transition-colors border-l-[4px] text-[16px]",
+            isActive
+              ? "bg-white border-[#58008e] text-[#58008e] shadow-[2px_0_0_0_white]"
+              : "border-transparent text-[#374151] hover:bg-slate-200/50 hover:text-slate-800"
+          )
+
+          if (!item.href) {
+            return (
+              <button
+                key={key}
+                onClick={() => onItemClick?.(key)}
+                className={itemClass}
+              >
+                {item.title}
+              </button>
+            )
+          }
+
           return (
             <a
-              key={item.href}
+              key={key}
               href={item.href}
-              onClick={() => {
-                 if (onItemClick) {
-                   onItemClick(item.href)
-                 }
-              }}
-              className={cn(
-                "block text-left px-6 py-4 font-medium transition-colors border-l-[4px] text-[16px]",
-                isActive
-                  ? "bg-white border-[#58008e] text-[#58008e] shadow-[2px_0_0_0_white]"
-                  : "border-transparent text-[#374151] hover:bg-slate-200/50 hover:text-slate-800"
-              )}
+              onClick={() => onItemClick?.(key)}
+              className={itemClass}
             >
               {item.title}
             </a>
