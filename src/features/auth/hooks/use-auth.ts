@@ -18,8 +18,8 @@ export const useAuth = () => {
             const response = await authApi.login(values);
             setAuthUser(response.user, response.accessToken, response.refreshToken);
             navigate(ROLE_HOME[response.user.role], { replace: true });
-        } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : "Something went wrong");
+        } catch (err: any) {
+            setError(err?.response?.data?.message ?? err?.message ?? "Something went wrong");
         } finally {
             setIsLoading(false);
         }

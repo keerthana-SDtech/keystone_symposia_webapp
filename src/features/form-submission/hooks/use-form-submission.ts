@@ -35,30 +35,21 @@ export const useFormSubmission = () => {
             // Use conferenceTitle as the concept's top-level title
             const title = String(data.conferenceTitle ?? 'Untitled Concept');
 
-            // Look up the category UUID by name from the backend
-            let categoryId: string | undefined;
-            if (data.scientificCategory) {
-                try {
-                    const { data: cats } = await httpClient.get<{ id: string; name: string }[]>('/keystone/categories');
-                    const match = (Array.isArray(cats) ? cats : []).find(
-                        c => c.name === String(data.scientificCategory)
-                    );
-                    categoryId = match?.id;
-                } catch {
-                    // leave categoryId undefined if lookup fails
-                }
-            }
+            // Extract top-level fields before mapping the rest to formData
+            const onBehalfOf = data.onBehalfOf != null ? String(data.onBehalfOf) : undefined;
 
             // Map every form field to the backend's { fieldKey, fieldValue } format
-            const formData = Object.entries(data).map(([fieldKey, fieldValue]) => ({
-                fieldKey,
-                fieldValue: fieldValue != null ? String(fieldValue) : undefined,
-            }));
+            const formData = Object.entries(data)
+                .filter(([fieldKey]) => fieldKey !== 'onBehalfOf')
+                .map(([fieldKey, fieldValue]) => ({
+                    fieldKey,
+                    fieldValue: fieldValue != null ? String(fieldValue) : undefined,
+                }));
 
             // Step 1 — create the concept draft
             const { data: concept } = await httpClient.post<CreatedConcept>(
                 '/keystone/concepts',
-                { title, categoryId, formData },
+                { title, submissionType: 'external', onBehalfOf, formData },
             );
 
             // Step 2 — submit for review

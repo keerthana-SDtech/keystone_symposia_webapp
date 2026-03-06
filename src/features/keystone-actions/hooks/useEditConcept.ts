@@ -46,22 +46,15 @@ export function useEditConcept(id: string) {
         try {
             const title = String(data.conferenceTitle ?? 'Untitled');
 
-            let categoryId: string | undefined;
-            if (data.scientificCategory) {
-                try {
-                    const { data: cats } = await httpClient.get<{ id: string; name: string }[]>('/keystone/categories');
-                    const match = (Array.isArray(cats) ? cats : []).find(
-                        c => c.name === String(data.scientificCategory)
-                    );
-                    categoryId = match?.id;
-                } catch { }
-            }
+            const onBehalfOf = data.onBehalfOf != null ? String(data.onBehalfOf) : undefined;
 
-            const formData = Object.entries(data).map(([fieldKey, fieldValue]) => ({
-                fieldKey,
-                fieldValue: fieldValue != null ? String(fieldValue) : undefined,
-            }));
-            await httpClient.patch(`/keystone/concepts/${id}`, { title, categoryId, formData });
+            const formData = Object.entries(data)
+                .filter(([fieldKey]) => fieldKey !== 'onBehalfOf')
+                .map(([fieldKey, fieldValue]) => ({
+                    fieldKey,
+                    fieldValue: fieldValue != null ? String(fieldValue) : undefined,
+                }));
+            await httpClient.patch(`/keystone/concepts/${id}`, { title, onBehalfOf, formData });
             return true;
         } catch (err: unknown) {
             const message =
