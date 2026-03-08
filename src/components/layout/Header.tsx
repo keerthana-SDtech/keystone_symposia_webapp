@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../app/providers/useAuthContext";
 import { LogOut, LayoutDashboard } from "lucide-react";
-import { useTenant } from "../../app/providers/TenantProvider";
+import { useTenant } from "../../hooks/useTenant";
 import { uiConfig } from "../../config/uiConfig";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {

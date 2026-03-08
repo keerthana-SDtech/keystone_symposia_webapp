@@ -5,7 +5,8 @@ import { tokenStore } from './tokenStore';
 // Derive API base URL from the current hostname so the subdomain (e.g. acme)
 // is preserved in requests to the gateway — required for tenant resolution.
 const apiPort = import.meta.env.VITE_API_PORT ?? '3000';
-const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:${apiPort}`;
+export const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:${apiPort}`;
+export const REFRESH_TOKEN_KEY = 'refreshToken';
 
 // ---------------------------------------------------------------------------
 // Plain Axios instance — no auth interceptors.
@@ -78,7 +79,7 @@ class HttpClient {
                 originalRequest._retry = true;
                 this.isRefreshing = true;
 
-                const storedRefreshToken = localStorage.getItem('refreshToken');
+                const storedRefreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
                 if (!storedRefreshToken) {
                     this._onAuthFailure?.();
                     return Promise.reject(error);
@@ -92,7 +93,7 @@ class HttpClient {
                     }>('/auth/refresh', { refreshToken: storedRefreshToken });
 
                     tokenStore.set(data.accessToken);
-                    localStorage.setItem('refreshToken', data.refreshToken);
+                    localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
 
                     this.processQueue(null, data.accessToken);
                     originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
