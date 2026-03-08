@@ -2,7 +2,10 @@ import axios from 'axios';
 import type { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { tokenStore } from './tokenStore';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL as string ?? '';
+// Derive API base URL from the current hostname so the subdomain (e.g. acme)
+// is preserved in requests to the gateway — required for tenant resolution.
+const apiPort = import.meta.env.VITE_API_PORT ?? '3000';
+const API_BASE_URL = `${window.location.protocol}//${window.location.hostname}:${apiPort}`;
 
 // ---------------------------------------------------------------------------
 // Plain Axios instance — no auth interceptors.
