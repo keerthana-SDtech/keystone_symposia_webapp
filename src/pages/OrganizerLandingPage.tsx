@@ -4,7 +4,7 @@ import { Card } from "../components/ui/card";
 import { FeatureItem } from "../components/ui/feature-item";
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../app/providers/useAuthContext";
-import { useTenant } from "../app/providers/TenantProvider";
+import { useTenant } from "../hooks/useTenant";
 import { ORGANIZER_LANDING_FEATURES, ORGANIZER_LANDING_CONTENT } from "../features/organizer/data/organizerLandingData";
 
 // Map icon string names → lucide components

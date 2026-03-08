@@ -8,7 +8,7 @@ import { Button } from "../../../components/ui/button";
 import { Checkbox } from "../../../components/ui/checkbox";
 import { Label } from "../../../components/ui/label";
 import { customRenderers } from "../../../features/json-forms/renderers/renderers";
-import { useTenant } from "../../../app/providers/TenantProvider";
+import { useTenant } from "../../../hooks/useTenant";
 import { LOGIN_PAGE_CONTENT } from "../../../pages/login/data/loginPageData";
 
 interface LoginFormProps {

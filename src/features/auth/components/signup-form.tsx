@@ -6,7 +6,7 @@ import type { ErrorObject } from "ajv";
 import { useAuth } from "../hooks/use-auth";
 import { Button } from "../../../components/ui/button";
 import { customRenderers } from "../../../features/json-forms/renderers/renderers";
-import { useTenant } from "../../../app/providers/TenantProvider";
+import { useTenant } from "../../../hooks/useTenant";
 import { SIGNUP_PAGE_CONTENT } from "../../../pages/signup/data/signupPageData";
 
 interface SignupFormProps {

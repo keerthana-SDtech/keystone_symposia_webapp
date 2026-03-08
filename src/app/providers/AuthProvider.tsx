@@ -1,71 +1,51 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import type { User } from '../../features/auth/types';
+import React, { useEffect } from 'react';
 import { authApi } from '../../features/auth/api';
 import { tokenStore } from '../../lib/tokenStore';
-import { setAuthFailureHandler } from '../../lib/httpClient';
+import { setAuthFailureHandler, REFRESH_TOKEN_KEY } from '../../lib/httpClient';
 import { AuthContext } from './AuthContext';
+import { useAuthStore } from '../../stores/auth.store';
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
+    const { user, isLoading, isAuthenticated, login, logout, setUser, setLoading } = useAuthStore();
 
     useEffect(() => {
-        // When httpClient's 401 refresh fails, clear the session
-        setAuthFailureHandler(() => {
-            setUser(null);
-            tokenStore.clear();
-            localStorage.removeItem('refreshToken');
-        });
+        let cancelled = false;
+
+        setAuthFailureHandler(() => { logout(); });
 
         const initAuth = async () => {
             const accessToken = tokenStore.get();
             if (accessToken && !tokenStore.isExpired(accessToken)) {
-                // Access token still valid — restore session without a refresh call
                 try {
                     const restoredUser = await authApi.hydrateUser(accessToken);
-                    tokenStore.set(accessToken);
-                    setUser(restoredUser);
+                    if (!cancelled) { tokenStore.set(accessToken); setUser(restoredUser); }
                 } catch {
-                    tokenStore.clear();
+                    if (!cancelled) tokenStore.clear();
                 }
             } else {
-                const refreshToken = localStorage.getItem('refreshToken');
+                const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
                 if (refreshToken) {
                     try {
                         const { user: refreshedUser } = await authApi.refresh(refreshToken);
-                        setUser(refreshedUser);
+                        if (!cancelled) setUser(refreshedUser);
                     } catch {
-                        tokenStore.clear();
-                        localStorage.removeItem('refreshToken');
+                        if (!cancelled) {
+                            tokenStore.clear();
+                            localStorage.removeItem(REFRESH_TOKEN_KEY);
+                        }
                     }
                 }
             }
-            setIsLoading(false);
+            if (!cancelled) setLoading(false);
         };
 
         initAuth();
-    }, []);
 
-    const login = useCallback((userData: User, accessToken: string, refreshToken: string) => {
-        setUser(userData);
-        tokenStore.set(accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
-    }, []);
+        return () => { cancelled = true; };
+    }, [logout, setUser, setLoading]);
 
-    const logout = useCallback(async () => {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-            try { await authApi.logout(refreshToken); } catch { /* best-effort */ }
-        }
-        setUser(null);
-        tokenStore.clear();
-        localStorage.removeItem('refreshToken');
-    }, []);
-
-    // Do NOT block the tree here — ProtectedRoute and GuestRoute handle
-    // per-route loading states so public pages (login, signup) render immediately.
     return (
-        <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, logout }}>
+        <AuthContext.Provider value={{ user, isAuthenticated, isLoading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );

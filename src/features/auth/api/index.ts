@@ -1,4 +1,4 @@
-import { authClient } from '../../../lib/httpClient';
+import { authClient, REFRESH_TOKEN_KEY } from '../../../lib/httpClient';
 import { tokenStore } from '../../../lib/tokenStore';
 import { mapBackendRole } from '../types';
 import type { AuthResponse, User } from '../types';
@@ -91,7 +91,7 @@ export const authApi = {
         const { data } = await authClient.post<TokenPair>('/auth/refresh', { refreshToken });
         // Sync the in-memory token store so subsequent calls work
         tokenStore.set(data.accessToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
         return buildAuthResponse(data);
     },
 
