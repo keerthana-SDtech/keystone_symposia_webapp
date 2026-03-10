@@ -11,13 +11,14 @@ interface TokenPair {
     identityId: string;
 }
 
-// Shape returned by GET /keystone/users/me (keystone-backend)
+// Shape returned by GET /iam/users/me
 interface UserProfile {
     identityId: string;
     email: string;
     firstName?: string;
     lastName?: string;
-    institution?: string;
+    avatarUrl?: string;
+    roles?: { id: string; roleName: string; permissionKeys: string[] }[];
 }
 
 /** Decode a JWT payload without verifying the signature (client-side only). */
@@ -32,7 +33,7 @@ function decodeJwt(token: string): { sub: string; email: string; role: string } 
  */
 async function fetchProfile(accessToken: string): Promise<UserProfile | null> {
     try {
-        const { data } = await authClient.get<UserProfile>('/keystone/users/me', {
+        const { data } = await authClient.get<UserProfile>('/iam/users/me', {
             headers: { Authorization: `Bearer ${accessToken}` },
         });
         return data;
@@ -74,11 +75,19 @@ export const authApi = {
         const firstName = parts[0];
         const lastName = parts.length > 1 ? parts.slice(1).join(' ') : undefined;
 
+        // Resolve tenant slug: prefer subdomain, fall back to VITE_TENANT_SLUG env var
+        const subdomain = window.location.hostname.split('.').length > 1
+            ? window.location.hostname.split('.')[0]
+            : null;
+        const tenantSlug = subdomain ?? import.meta.env.VITE_TENANT_SLUG ?? '';
+
         const { data } = await authClient.post<TokenPair>('/auth/register', {
             email: values.email,
             password: values.password,
             firstName,
             lastName,
+        }, {
+            headers: tenantSlug ? { 'X-Tenant-Slug': tenantSlug } : {},
         });
 
         // Small delay to let the registration webhook create the user profile
