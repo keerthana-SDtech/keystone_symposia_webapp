@@ -10,6 +10,12 @@ import ReviewConceptPage from '../../pages/ReviewConceptPage'
 import SubmitReviewPage from '../../pages/SubmitReviewPage'
 import ReviewSubmittedPage from '../../pages/ReviewSubmittedPage'
 import EditConceptPage from '../../pages/EditConceptPage'
+import UsersPage from '../../pages/tenant-admin/UsersPage'
+import RolesPermissionsPage from '../../pages/tenant-admin/RolesPermissionsPage'
+import WorkflowStagesPage from '../../pages/tenant-admin/WorkflowStagesPage'
+import StatusManagementPage from '../../pages/tenant-admin/StatusManagementPage'
+import EmailTriggersPage from '../../pages/tenant-admin/EmailTriggersPage'
+import AuditLogsPage from '../../pages/tenant-admin/AuditLogsPage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { GuestRoute } from './GuestRoute'
 
@@ -33,6 +39,14 @@ export const appRoutes: RouteObject[] = [
   { path: '/reviewer/review/:conceptId',            element: <ProtectedRoute allowedRoles={['keystone_member']}><ReviewConceptPage /></ProtectedRoute> },
   { path: '/reviewer/review/:conceptId/submit',     element: <ProtectedRoute allowedRoles={['keystone_member']}><SubmitReviewPage /></ProtectedRoute> },
   { path: '/reviewer/review/:conceptId/submitted',  element: <ProtectedRoute allowedRoles={['keystone_member']}><ReviewSubmittedPage /></ProtectedRoute> },
+
+  // ── Tenant Admin ──────────────────────────────────────────────────────────
+  { path: '/tenant-admin/users',             element: <ProtectedRoute allowedRoles={['tenant_admin']}><UsersPage /></ProtectedRoute> },
+  { path: '/tenant-admin/roles-permissions', element: <ProtectedRoute allowedRoles={['tenant_admin']}><RolesPermissionsPage /></ProtectedRoute> },
+  { path: '/tenant-admin/workflow-stages',   element: <ProtectedRoute allowedRoles={['tenant_admin']}><WorkflowStagesPage /></ProtectedRoute> },
+  { path: '/tenant-admin/status-management', element: <ProtectedRoute allowedRoles={['tenant_admin']}><StatusManagementPage /></ProtectedRoute> },
+  { path: '/tenant-admin/email-triggers',    element: <ProtectedRoute allowedRoles={['tenant_admin']}><EmailTriggersPage /></ProtectedRoute> },
+  { path: '/tenant-admin/audit-logs',        element: <ProtectedRoute allowedRoles={['tenant_admin']}><AuditLogsPage /></ProtectedRoute> },
 
   // ── Catch-all ─────────────────────────────────────────────────────────────
   { path: '*', element: <Navigate to="/" replace /> },

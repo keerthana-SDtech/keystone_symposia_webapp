@@ -1,4 +1,4 @@
-export type UserRole = 'external_scientist' | 'keystone_member' | 'study_group_reviewer';
+export type UserRole = 'external_scientist' | 'keystone_member' | 'study_group_reviewer' | 'tenant_admin';
 
 export interface User {
     id: string;
@@ -15,5 +15,8 @@ export interface AuthResponse {
 
 /** Map backend role string to a frontend UserRole. */
 export function mapBackendRole(role: string): UserRole {
-    return role === 'submitter' ? 'external_scientist' : 'keystone_member';
+    if (role === 'submitter') return 'external_scientist';
+    if (role === 'tenant_admin') return 'tenant_admin';
+    if (role === 'study_group_reviewer') return 'study_group_reviewer';
+    return 'keystone_member';
 }

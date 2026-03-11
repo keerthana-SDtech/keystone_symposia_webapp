@@ -16,4 +16,10 @@ export const ROUTE_PERMISSIONS: RoutePermission[] = [
   { path: '/reviewer/review/:conceptId',              allowedRoles: ['keystone_member'] },
   { path: '/reviewer/review/:conceptId/submit',       allowedRoles: ['keystone_member'] },
   { path: '/reviewer/review/:conceptId/submitted',    allowedRoles: ['keystone_member'] },
+  { path: '/tenant-admin/users',             allowedRoles: ['tenant_admin'] },
+  { path: '/tenant-admin/roles-permissions', allowedRoles: ['tenant_admin'] },
+  { path: '/tenant-admin/workflow-stages',   allowedRoles: ['tenant_admin'] },
+  { path: '/tenant-admin/status-management', allowedRoles: ['tenant_admin'] },
+  { path: '/tenant-admin/email-triggers',    allowedRoles: ['tenant_admin'] },
+  { path: '/tenant-admin/audit-logs',        allowedRoles: ['tenant_admin'] },
 ];

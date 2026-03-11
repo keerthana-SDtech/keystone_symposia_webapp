@@ -4,6 +4,8 @@ import type { UserRole } from '../features/auth/types';
 export const ROLE_HOME: Record<UserRole, string> = {
   external_scientist: '/home',
   keystone_member: '/dashboard',
+  study_group_reviewer: '/dashboard',
+  tenant_admin: '/tenant-admin/users',
 };
 
 export interface NavItem {
