@@ -6,12 +6,14 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { ADD_STATUS_CONTENT, type Status } from "./statusData";
 import { ColorPickerPanel } from "./ColorPickerPanel";
 
+interface StageOption { id: string; name: string; }
+
 interface AddStatusModalProps {
   isOpen:        boolean;
   onClose:       () => void;
   onSave:        (data: Omit<Status, "id">) => void;
   editData?:     Status | null;
-  stageOptions?: string[];
+  stageOptions?: StageOption[];
 }
 
 type Tab = "basicInfo" | "colorPicker";
@@ -24,6 +26,13 @@ interface FormState {
 const EMPTY_FORM: FormState = { name: "", description: "", assignedStages: [], enabled: true, color: "#7B2FBE", opacity: 100 };
 
 export const AddStatusModal = ({ isOpen, onClose, onSave, editData, stageOptions = [] }: AddStatusModalProps) => {
+  // Display names in the multi-select, store UUIDs in assignedStages
+  const stageNames = stageOptions.map(s => s.name);
+  // selectedStageNames: resolve stored UUIDs back to names for display
+  const uuidsToNames = (uuids: string[]) =>
+    uuids.map(id => stageOptions.find(s => s.id === id)?.name ?? id);
+  const namesToUuids = (names: string[]) =>
+    names.map(name => stageOptions.find(s => s.name === name)?.id ?? name);
   const [tab,  setTab]  = useState<Tab>("basicInfo");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
@@ -31,7 +40,7 @@ export const AddStatusModal = ({ isOpen, onClose, onSave, editData, stageOptions
     if (isOpen) {
       setTab("basicInfo");
       setForm(editData
-        ? { name: editData.name, description: editData.description, assignedStages: editData.assignedStages, enabled: editData.enabled, color: editData.color, opacity: 100 }
+        ? { name: editData.name, description: editData.description, assignedStages: uuidsToNames(editData.assignedStages), enabled: editData.enabled, color: editData.color, opacity: 100 }
         : EMPTY_FORM
       );
     }
@@ -46,7 +55,7 @@ export const AddStatusModal = ({ isOpen, onClose, onSave, editData, stageOptions
 
   const handleSave = () => {
     if (!form.name) return;
-    onSave({ name: form.name, description: form.description, assignedStages: form.assignedStages, enabled: form.enabled, color: form.color });
+    onSave({ name: form.name, description: form.description, assignedStages: namesToUuids(form.assignedStages), enabled: form.enabled, color: form.color });
     onClose();
   };
 
@@ -90,10 +99,11 @@ export const AddStatusModal = ({ isOpen, onClose, onSave, editData, stageOptions
               <div>
                 <label className={labelCls}>{fields.assignStages.label}</label>
                 <MultiSelect
-                  options={stageOptions}
+                  options={stageNames}
                   selected={form.assignedStages}
                   placeholder="Select stages"
                   onChange={v => setForm(p => ({ ...p, assignedStages: v }))}
+                  searchable
                 />
               </div>
               <div className="flex items-center gap-2.5">

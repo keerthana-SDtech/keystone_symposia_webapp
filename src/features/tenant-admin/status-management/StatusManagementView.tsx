@@ -9,7 +9,7 @@ import { workflowApi } from "../workflow-stages/api";
 
 export const StatusManagementView = () => {
   const [statuses,     setStatuses]     = useState<Status[]>([]);
-  const [stageOptions, setStageOptions] = useState<string[]>([]);
+  const [stageOptions, setStageOptions] = useState<{ id: string; name: string }[]>([]);
   const [search,       setSearch]       = useState("");
   const [modalOpen,    setModalOpen]    = useState(false);
   const [editStatus,   setEditStatus]   = useState<Status | null>(null);
@@ -25,7 +25,7 @@ export const StatusManagementView = () => {
     Promise.all([statusApi.list(), workflowApi.list()])
       .then(([statusList, stageList]) => {
         setStatuses(statusList);
-        setStageOptions(stageList.map(s => s.name));
+        setStageOptions(stageList.map(s => ({ id: s.id, name: s.name })));
       })
       .catch(() => showToast("Failed to load statuses"));
   }, []);

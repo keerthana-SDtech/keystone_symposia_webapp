@@ -11,6 +11,12 @@ export const ROLE_OPTIONS = ["Mentor", "Keystone Staff", "Study Group", "Organiz
 export const STATUS_ACTION_OPTIONS  = ["Shortlist", "Bank", "Reject", "Approve", "Escalate"];
 export const ALLOWED_ACTION_OPTIONS = ["View", "Edit", "Submit", "Review", "Delete", "Export"];
 
+export interface StatusActionItem {
+  actionCode: string;
+  statusId:   string | null;
+  toStageId:  string | null;
+}
+
 export interface Stage {
   id: string;
   name: string;
@@ -21,13 +27,16 @@ export interface Stage {
   stageOrder: string;
   fromStage: string;
   toStage: string;
-  statusActions: string[];
+  statusActions: StatusActionItem[];
   allowedActions: string[];
+  startDate?: string | null;
+  endDate?:   string | null;
+  isFinalStage?: boolean;
 }
 
 export const MOCK_STAGES: Stage[] = [
-  { id: "1",  name: "Concept Submitted",              description: "Initial concept submission phase",                         roles: ["Mentor","Keystone Staff"],     locked: false, whoCanAdvance: [], stageOrder: "1",  fromStage: "",                           toStage: "Screening",                     statusActions: [],                          allowedActions: ["View","Submit"]          },
-  { id: "2",  name: "Screening",                      description: "(Shortlisted / Rejected / Banked)",                        roles: ["Keystone Staff"],              locked: false, whoCanAdvance: [], stageOrder: "2",  fromStage: "Concept Submitted",          toStage: "Study Group Review Window",     statusActions: ["Shortlist","Bank","Reject"], allowedActions: ["View","Edit"]          },
+  { id: "1",  name: "Concept Submitted",              description: "Initial concept submission phase",                         roles: ["Mentor","Keystone Staff"],     locked: false, whoCanAdvance: [], stageOrder: "1",  fromStage: "",                           toStage: "Screening",                     statusActions: [],                                                                                              allowedActions: ["View","Submit"]          },
+  { id: "2",  name: "Screening",                      description: "(Shortlisted / Rejected / Banked)",                        roles: ["Keystone Staff"],              locked: false, whoCanAdvance: [], stageOrder: "2",  fromStage: "Concept Submitted",          toStage: "Study Group Review Window",     statusActions: [{ actionCode: "shortlist", statusId: null, toStageId: null }, { actionCode: "bank", statusId: null, toStageId: null }, { actionCode: "reject", statusId: null, toStageId: null }], allowedActions: ["View","Edit"]          },
   { id: "3",  name: "Study Group Review Window",      description: "Study group review happens",                               roles: ["Study Group"],                 locked: false, whoCanAdvance: [], stageOrder: "3",  fromStage: "Screening",                  toStage: "Study Group Review In Progress", statusActions: [],                         allowedActions: ["View","Review"]          },
   { id: "4",  name: "Study Group Review In Progress", description: "Study group review in progress",                           roles: ["Study Group"],                 locked: false, whoCanAdvance: [], stageOrder: "4",  fromStage: "Study Group Review Window",  toStage: "SAB Board Meeting",             statusActions: [],                          allowedActions: ["View","Edit","Review"]   },
   { id: "5",  name: "SAB Board Meeting",              description: "Concept presented to Scientific Advisory Board",           roles: ["Keystone Staff"],              locked: false, whoCanAdvance: [], stageOrder: "5",  fromStage: "Study Group Review In Progress", toStage: "Proposal In Progress",        statusActions: [],                          allowedActions: ["View"]                  },

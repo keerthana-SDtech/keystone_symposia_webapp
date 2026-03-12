@@ -3,32 +3,61 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { SingleSelect } from "@/components/ui/single-select";
-import { ADD_STAGE_CONTENT, ROLE_OPTIONS, STATUS_ACTION_OPTIONS, ALLOWED_ACTION_OPTIONS, type Stage } from "./workflowData";
+import { ADD_STAGE_CONTENT, ROLE_OPTIONS, STATUS_ACTION_OPTIONS, ALLOWED_ACTION_OPTIONS, type Stage, type StatusActionItem } from "./workflowData";
+
+interface StageOption  { id: string; name: string; }
+interface StatusOption { id: string; name: string; }
 
 interface AddStageDrawerProps {
-  isOpen:     boolean;
-  onClose:    () => void;
-  onSave:     (data: Omit<Stage, "id" | "locked">) => void;
-  editData?:  Stage | null;
-  stageNames: string[];
+  isOpen:        boolean;
+  onClose:       () => void;
+  onSave:        (data: Omit<Stage, "id" | "locked">) => void;
+  editData?:     Stage | null;
+  stageOptions:  StageOption[];
+  statusOptions: StatusOption[];
 }
 
 interface FormState {
-  name: string; description: string; whoCanAdvance: string[]; stageOrder: string;
-  fromStage: string; toStage: string; statusActions: string[]; allowedActions: string[];
+  name: string;
+  description: string;
+  whoCanAdvance: string[];
+  stageOrder: string;
+  fromStage: string;
+  toStage: string;
+  statusActions: StatusActionItem[];
+  allowedActions: string[];
+  startDate: string;
+  endDate: string;
+  isFinalStage: boolean;
 }
 
-const EMPTY_FORM: FormState = { name: "", description: "", whoCanAdvance: [], stageOrder: "", fromStage: "", toStage: "", statusActions: [], allowedActions: [] };
+const EMPTY_FORM: FormState = {
+  name: "", description: "", whoCanAdvance: [], stageOrder: "",
+  fromStage: "", toStage: "", statusActions: [], allowedActions: [],
+  startDate: "", endDate: "", isFinalStage: false,
+};
 
-export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageNames }: AddStageDrawerProps) => {
+// Terminal actions — no next stage (lowercase codes)
+const TERMINAL_ACTIONS = ["reject"];
+
+export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageOptions, statusOptions }: AddStageDrawerProps) => {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
   useEffect(() => {
     if (isOpen) {
-      setForm(editData
-        ? { name: editData.name, description: editData.description, whoCanAdvance: editData.whoCanAdvance, stageOrder: editData.stageOrder, fromStage: editData.fromStage, toStage: editData.toStage, statusActions: editData.statusActions, allowedActions: editData.allowedActions }
-        : EMPTY_FORM
-      );
+      setForm(editData ? {
+        name: editData.name,
+        description: editData.description,
+        whoCanAdvance: editData.whoCanAdvance,
+        stageOrder: editData.stageOrder,
+        fromStage: editData.fromStage,
+        toStage: editData.toStage,
+        statusActions: editData.statusActions ?? [],
+        allowedActions: editData.allowedActions,
+        startDate: editData.startDate ? editData.startDate.slice(0, 10) : "",
+        endDate: editData.endDate ? editData.endDate.slice(0, 10) : "",
+        isFinalStage: editData.isFinalStage ?? false,
+      } : EMPTY_FORM);
     }
   }, [isOpen, editData]);
 
@@ -39,67 +68,196 @@ export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageNames }
     return () => document.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
 
+  // MultiSelect uses capitalized labels; actionCode stored as lowercase
+  const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+  const selectedActionLabels = form.statusActions.map(a => capitalize(a.actionCode));
+
+  // When MultiSelect changes, sync statusActions (store lowercase codes)
+  const handleActionCodesChange = (labels: string[]) => {
+    setForm(p => {
+      const next = labels.map(label => {
+        const code = label.toLowerCase();
+        const existing = p.statusActions.find(a => a.actionCode === code);
+        return existing ?? { actionCode: code, statusId: null, toStageId: null };
+      });
+      return { ...p, statusActions: next };
+    });
+  };
+
+  // Update toStageId for a specific action code
+  const updateToStage = (code: string, stageName: string) => {
+    const found = stageOptions.find(s => s.name === stageName);
+    setForm(p => ({
+      ...p,
+      statusActions: p.statusActions.map(a =>
+        a.actionCode === code ? { ...a, toStageId: found?.id ?? null } : a
+      ),
+    }));
+  };
+
+  // Update statusId for a specific action code
+  const updateActionStatus = (code: string, statusName: string) => {
+    const found = statusOptions.find(s => s.name === statusName);
+    setForm(p => ({
+      ...p,
+      statusActions: p.statusActions.map(a =>
+        a.actionCode === code ? { ...a, statusId: found?.id ?? null } : a
+      ),
+    }));
+  };
+
   const handleSave = () => {
     if (!form.name) return;
-    onSave({ name: form.name, description: form.description, whoCanAdvance: form.whoCanAdvance, stageOrder: form.stageOrder, fromStage: form.fromStage, toStage: form.toStage, statusActions: form.statusActions, allowedActions: form.allowedActions, roles: form.whoCanAdvance });
+    onSave({
+      name: form.name,
+      description: form.description,
+      whoCanAdvance: form.whoCanAdvance,
+      stageOrder: form.stageOrder,
+      fromStage: form.fromStage,
+      toStage: form.toStage,
+      statusActions: form.statusActions,
+      allowedActions: form.allowedActions,
+      roles: form.whoCanAdvance,
+      startDate: form.startDate ? new Date(form.startDate).toISOString() : null,
+      endDate: form.endDate ? new Date(form.endDate).toISOString() : null,
+      isFinalStage: form.isFinalStage,
+    });
     onClose();
   };
 
+  const stageNameOptions = stageOptions.map(s => s.name);
   const isEdit = Boolean(editData);
   const { createTitle, editTitle, sections, fields, cancel, add, save } = ADD_STAGE_CONTENT;
   const orderOptions = Array.from({ length: 20 }, (_, i) => String(i + 1));
 
   if (!isOpen) return null;
 
-  const inputCls    = "w-full px-3 py-2.5 border border-gray-200 rounded-md text-[13px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-gray-400";
-  const textareaCls = `${inputCls} resize-none`;
-  const labelCls    = "text-[13px] font-medium text-gray-700 mb-1.5 block";
-  const sectionCls  = "text-[15px] font-semibold text-gray-900 mb-4";
+  const inputCls   = "w-full px-3 py-2.5 border border-gray-200 rounded-md text-[13px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-gray-400";
+  const labelCls   = "text-[13px] font-medium text-gray-700 mb-1.5 block";
+  const sectionCls = "text-[15px] font-semibold text-gray-900 mb-4";
 
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 z-50 w-[420px] bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
+      <div className="fixed inset-y-0 right-0 z-50 w-[480px] bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <h2 className="text-[17px] font-semibold text-gray-900">{isEdit ? editTitle : createTitle}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1 rounded transition-colors"><X className="w-4 h-4" /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
+          {/* ── Basic Info ── */}
           <p className={sectionCls}>{sections.basicInfo}</p>
+
           <div>
             <label className={labelCls}>{fields.name.label}<span className="text-red-500 ml-0.5">*</span></label>
             <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder={fields.name.placeholder} className={inputCls} />
           </div>
+
           <div>
             <label className={labelCls}>{fields.description.label}</label>
-            <textarea rows={3} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder={fields.description.placeholder} className={textareaCls} />
+            <textarea rows={3} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder={fields.description.placeholder} className={`${inputCls} resize-none`} />
           </div>
+
           <div>
             <label className={labelCls}>{fields.whoCanAdvance.label}<span className="text-red-500 ml-0.5">*</span></label>
             <MultiSelect searchable selected={form.whoCanAdvance} onChange={v => setForm(p => ({ ...p, whoCanAdvance: v }))} options={ROLE_OPTIONS} placeholder={fields.whoCanAdvance.placeholder} />
           </div>
+
           <div>
             <label className={labelCls}>{fields.stageOrder.label}<span className="text-red-500 ml-0.5">*</span></label>
             <SingleSelect searchable value={form.stageOrder} onChange={v => setForm(p => ({ ...p, stageOrder: v }))} options={orderOptions} placeholder={fields.stageOrder.placeholder} />
           </div>
 
+          {/* ── Configuration ── */}
           <p className={sectionCls}>{sections.configuration}</p>
-          <div>
-            <label className={labelCls}>{fields.fromStage.label}<span className="text-red-500 ml-0.5">*</span></label>
-            <SingleSelect searchable value={form.fromStage} onChange={v => setForm(p => ({ ...p, fromStage: v }))} options={stageNames} placeholder={fields.fromStage.placeholder} />
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={labelCls}>Stage Start Date</label>
+              <input type="date" value={form.startDate} onChange={e => setForm(p => ({ ...p, startDate: e.target.value }))} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>Stage End Date</label>
+              <input type="date" value={form.endDate} onChange={e => setForm(p => ({ ...p, endDate: e.target.value }))} className={inputCls} />
+            </div>
           </div>
+
+          {/* Primary Actions multi-select */}
           <div>
-            <label className={labelCls}>{fields.toStage.label}<span className="text-red-500 ml-0.5">*</span></label>
-            <SingleSelect searchable value={form.toStage} onChange={v => setForm(p => ({ ...p, toStage: v }))} options={stageNames} placeholder={fields.toStage.placeholder} />
+            <label className={labelCls}>Primary Actions<span className="text-red-500 ml-0.5">*</span></label>
+            <MultiSelect
+              searchable
+              options={STATUS_ACTION_OPTIONS}
+              selected={selectedActionLabels}
+              onChange={handleActionCodesChange}
+              placeholder="Select status actions"
+            />
           </div>
+
+          {/* Per-action sub-sections — rendered in selection order */}
+          {form.statusActions.map(action => {
+            const currentStageName = stageOptions.find(s => s.id === action.toStageId)?.name ?? "";
+            const label = action.actionCode.charAt(0).toUpperCase() + action.actionCode.slice(1);
+
+            return (
+              <div key={action.actionCode} className="border-t border-gray-100 pt-4">
+                <p className="text-[14px] font-semibold text-gray-800 mb-3">{label}</p>
+
+                {TERMINAL_ACTIONS.includes(action.actionCode) ? (
+                  <p className="text-[13px] text-gray-400 italic">No stages ahead.</p>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    <div>
+                      <label className={labelCls}>
+                        Select Stage Name for {label}<span className="text-red-500 ml-0.5">*</span>
+                      </label>
+                      <SingleSelect
+                        searchable
+                        value={currentStageName}
+                        onChange={v => updateToStage(action.actionCode, v)}
+                        options={stageNameOptions}
+                        placeholder={`Select next stage for ${action.actionCode}`}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Resulting Status</label>
+                      <SingleSelect
+                        searchable
+                        value={statusOptions.find(s => s.id === action.statusId)?.name ?? ""}
+                        onChange={v => updateActionStatus(action.actionCode, v)}
+                        options={statusOptions.map(s => s.name)}
+                        placeholder="Select resulting status (optional)"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* To Stage (legacy single field — kept for fromStage/toStage label on stage row) */}
           <div>
-            <label className={labelCls}>{fields.statusActions.label}<span className="text-red-500 ml-0.5">*</span></label>
-            <MultiSelect searchable selected={form.statusActions} onChange={v => setForm(p => ({ ...p, statusActions: v }))} options={STATUS_ACTION_OPTIONS} placeholder={fields.statusActions.placeholder} />
+            <label className={labelCls}>{fields.toStage.label}</label>
+            <SingleSelect searchable value={form.toStage} onChange={v => setForm(p => ({ ...p, toStage: v }))} options={stageNameOptions} placeholder={fields.toStage.placeholder} />
           </div>
+
           <div>
-            <label className={labelCls}>{fields.allowedActions.label}<span className="text-red-500 ml-0.5">*</span></label>
+            <label className={labelCls}>{fields.allowedActions.label}</label>
             <MultiSelect searchable selected={form.allowedActions} onChange={v => setForm(p => ({ ...p, allowedActions: v }))} options={ALLOWED_ACTION_OPTIONS} placeholder={fields.allowedActions.placeholder} />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isFinalStage"
+              checked={form.isFinalStage}
+              onChange={e => setForm(p => ({ ...p, isFinalStage: e.target.checked }))}
+              className="w-4 h-4 accent-primary rounded"
+            />
+            <label htmlFor="isFinalStage" className="text-[13px] font-medium text-gray-700 cursor-pointer">
+              Mark as Final Stage
+            </label>
           </div>
         </div>
 

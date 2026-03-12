@@ -29,18 +29,39 @@ export const SignupForm = ({ schema, uiSchema }: SignupFormProps) => {
   const [showErrors, setShowErrors] = useState(false);
 
   const additionalErrors: ErrorObject[] = useMemo(() => {
-    if (data.password && data.confirmPassword && data.password !== data.confirmPassword) {
-      return [
-        {
-          instancePath: "/confirmPassword",
-          message: "Passwords don't match",
-          schemaPath: "#/properties/confirmPassword",
-          keyword: "custom",
-          params: {},
-        },
-      ];
+    const errs: ErrorObject[] = [];
+
+    if (data.password && data.password.length < 8) {
+      errs.push({
+        instancePath: "/password",
+        message: "Password must be at least 8 characters",
+        schemaPath: "#/properties/password",
+        keyword: "custom",
+        params: {},
+      });
     }
-    return [];
+
+    if (data.confirmPassword && data.confirmPassword.length < 8) {
+      errs.push({
+        instancePath: "/confirmPassword",
+        message: "Password must be at least 8 characters",
+        schemaPath: "#/properties/confirmPassword",
+        keyword: "custom",
+        params: {},
+      });
+    }
+
+    if (data.password && data.confirmPassword && data.password !== data.confirmPassword) {
+      errs.push({
+        instancePath: "/confirmPassword",
+        message: "Passwords don't match",
+        schemaPath: "#/properties/confirmPassword",
+        keyword: "custom",
+        params: {},
+      });
+    }
+
+    return errs;
   }, [data.password, data.confirmPassword]);
 
   const handleChange = ({

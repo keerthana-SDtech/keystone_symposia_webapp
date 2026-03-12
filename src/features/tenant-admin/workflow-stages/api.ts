@@ -1,13 +1,30 @@
 import { httpClient } from '@/lib/httpClient';
-import type { Stage } from './workflowData';
+import type { Stage, StatusActionItem } from './workflowData';
 
-export interface ApiStage extends Stage {}
+export interface ApiStage {
+  id: string;
+  name: string;
+  description: string;
+  roles: string[];
+  locked: boolean;
+  whoCanAdvance: string[];
+  stageOrder: string;
+  fromStage: string;
+  toStage: string;
+  statusActions: StatusActionItem[];
+  allowedActions: string[];
+  startDate?: string | null;
+  endDate?: string | null;
+}
 
 const BASE = '/config/stages';
 
 export const workflowApi = {
   list: () =>
     httpClient.get<ApiStage[]>(BASE).then(r => r.data),
+
+  getById: (id: string) =>
+    httpClient.get<ApiStage>(`${BASE}/${id}`).then(r => r.data),
 
   create: (data: Omit<Stage, 'id' | 'locked'> & { locked?: boolean }) =>
     httpClient.post<ApiStage>(BASE, data).then(r => r.data),

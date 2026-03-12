@@ -7,13 +7,16 @@ import { ActionsMenu } from "@/components/ui/actions-menu";
 import { AddStageDrawer } from "./AddStageDrawer";
 import { WORKFLOW_PAGE_CONTENT, type Stage } from "./workflowData";
 import { workflowApi } from "./api";
+import { statusApi } from "../status-management/api";
 
 const RoleTag = ({ label }: { label: string }) => (
   <span className="px-2.5 py-0.5 text-[11px] font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-200 whitespace-nowrap">{label}</span>
 );
 
 export const WorkflowView = () => {
-  const [stages,     setStages]     = useState<Stage[]>([]);
+  const [stages,        setStages]        = useState<Stage[]>([]);
+  const [stageOptions,  setStageOptions]  = useState<{ id: string; name: string }[]>([]);
+  const [statusOptions, setStatusOptions] = useState<{ id: string; name: string }[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editStage,  setEditStage]  = useState<Stage | null>(null);
@@ -29,8 +32,12 @@ export const WorkflowView = () => {
   };
 
   useEffect(() => {
-    workflowApi.list()
-      .then(data => setStages(data))
+    Promise.all([workflowApi.list(), statusApi.list()])
+      .then(([stageList, statusList]) => {
+        setStages(stageList);
+        setStageOptions(stageList.map(s => ({ id: s.id, name: s.name })));
+        setStatusOptions(statusList.map(s => ({ id: s.id, name: s.name })));
+      })
       .catch(() => showToast("Failed to load stages"))
       .finally(() => setLoading(false));
   }, []);
@@ -47,7 +54,12 @@ export const WorkflowView = () => {
   const onDragEnd = () => { dragIndex.current = null; setDragOver(null); };
 
   const handleCreate = async (data: Omit<Stage, "id" | "locked">) => {
-    try { const created = await workflowApi.create(data); setStages(prev => [...prev, created]); showToast("Stage added successfully"); }
+    try {
+      const created = await workflowApi.create(data);
+      setStages(prev => [...prev, created]);
+      setStageOptions(prev => [...prev, { id: created.id, name: created.name }]);
+      showToast("Stage added successfully");
+    }
     catch { showToast("Failed to add stage"); }
   };
 
@@ -123,7 +135,7 @@ export const WorkflowView = () => {
       {loading && <p className="text-center text-[14px] text-gray-400 mt-12">Loading...</p>}
       {!loading && stages.length === 0 && <p className="text-center text-[14px] text-gray-400 mt-12">{WORKFLOW_PAGE_CONTENT.emptyState}</p>}
 
-      <AddStageDrawer isOpen={drawerOpen} onClose={() => { setDrawerOpen(false); setEditStage(null); }} onSave={editStage ? handleEdit : handleCreate} editData={editStage} stageNames={stages.map(s => s.name)} />
+      <AddStageDrawer isOpen={drawerOpen} onClose={() => { setDrawerOpen(false); setEditStage(null); }} onSave={editStage ? handleEdit : handleCreate} editData={editStage} stageOptions={stageOptions} statusOptions={statusOptions} />
 
       <DeleteConfirmModal
         isOpen={deleteId !== null}

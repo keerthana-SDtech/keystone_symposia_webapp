@@ -115,4 +115,17 @@ export const authApi = {
         const name = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || jwt.email;
         return { id: jwt.sub, email: jwt.email, name, role: mapBackendRole(jwt.role) };
     },
+
+    forgotPassword: async (email: string): Promise<void> => {
+        await authClient.post('/auth/forgot-password', { email });
+    },
+
+    validateOtp: async (email: string, otp: string): Promise<boolean> => {
+        const { data } = await authClient.post<{ valid: boolean }>('/auth/validate-otp', { email, otp });
+        return data.valid;
+    },
+
+    resetPassword: async (email: string, otp: string, password: string): Promise<void> => {
+        await authClient.post('/auth/reset-password', { email, otp, password });
+    },
 };
