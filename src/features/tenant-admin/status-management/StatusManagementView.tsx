@@ -5,13 +5,15 @@ import { DeleteConfirmModal } from "@/components/shared/DeleteConfirmModal";
 import { Toast } from "@/components/ui/toast";
 import { type Status } from "./statusData";
 import { statusApi } from "./api";
+import { workflowApi } from "../workflow-stages/api";
 
 export const StatusManagementView = () => {
-  const [statuses,   setStatuses]   = useState<Status[]>([]);
-  const [search,     setSearch]     = useState("");
-  const [modalOpen,  setModalOpen]  = useState(false);
-  const [editStatus, setEditStatus] = useState<Status | null>(null);
-  const [deleteId,   setDeleteId]   = useState<string | null>(null);
+  const [statuses,     setStatuses]     = useState<Status[]>([]);
+  const [stageOptions, setStageOptions] = useState<string[]>([]);
+  const [search,       setSearch]       = useState("");
+  const [modalOpen,    setModalOpen]    = useState(false);
+  const [editStatus,   setEditStatus]   = useState<Status | null>(null);
+  const [deleteId,     setDeleteId]     = useState<string | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
 
   const showToast = (message: string) => {
@@ -20,8 +22,11 @@ export const StatusManagementView = () => {
   };
 
   useEffect(() => {
-    statusApi.list()
-      .then(data => setStatuses(data))
+    Promise.all([statusApi.list(), workflowApi.list()])
+      .then(([statusList, stageList]) => {
+        setStatuses(statusList);
+        setStageOptions(stageList.map(s => s.name));
+      })
       .catch(() => showToast("Failed to load statuses"));
   }, []);
 
@@ -62,7 +67,7 @@ export const StatusManagementView = () => {
         onCreate={() => { setEditStatus(null); setModalOpen(true); }}
       />
 
-      <AddStatusModal isOpen={modalOpen} onClose={() => { setModalOpen(false); setEditStatus(null); }} onSave={editStatus ? handleEdit : handleCreate} editData={editStatus} />
+      <AddStatusModal isOpen={modalOpen} onClose={() => { setModalOpen(false); setEditStatus(null); }} onSave={editStatus ? handleEdit : handleCreate} editData={editStatus} stageOptions={stageOptions} />
 
       <DeleteConfirmModal
         isOpen={deleteId !== null}

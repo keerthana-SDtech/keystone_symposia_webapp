@@ -3,14 +3,15 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/shared/Toggle";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { ADD_STATUS_CONTENT, MOCK_STAGES, type Status } from "./statusData";
+import { ADD_STATUS_CONTENT, type Status } from "./statusData";
 import { ColorPickerPanel } from "./ColorPickerPanel";
 
 interface AddStatusModalProps {
-  isOpen:     boolean;
-  onClose:    () => void;
-  onSave:     (data: Omit<Status, "id">) => void;
-  editData?:  Status | null;
+  isOpen:        boolean;
+  onClose:       () => void;
+  onSave:        (data: Omit<Status, "id">) => void;
+  editData?:     Status | null;
+  stageOptions?: string[];
 }
 
 type Tab = "basicInfo" | "colorPicker";
@@ -22,7 +23,7 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { name: "", description: "", assignedStages: [], enabled: true, color: "#7B2FBE", opacity: 100 };
 
-export const AddStatusModal = ({ isOpen, onClose, onSave, editData }: AddStatusModalProps) => {
+export const AddStatusModal = ({ isOpen, onClose, onSave, editData, stageOptions = [] }: AddStatusModalProps) => {
   const [tab,  setTab]  = useState<Tab>("basicInfo");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
@@ -89,7 +90,7 @@ export const AddStatusModal = ({ isOpen, onClose, onSave, editData }: AddStatusM
               <div>
                 <label className={labelCls}>{fields.assignStages.label}</label>
                 <MultiSelect
-                  options={MOCK_STAGES}
+                  options={stageOptions}
                   selected={form.assignedStages}
                   placeholder="Select stages"
                   onChange={v => setForm(p => ({ ...p, assignedStages: v }))}
