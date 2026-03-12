@@ -1,14 +1,19 @@
-import { Clock, Users, Focus, LayoutDashboard } from "lucide-react";
+
 import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { LANDING_PAGE_CONTENT, LANDING_PAGE_FEATURES } from "../features/landing/data/landingPageData";
 import { Header } from "../components/layout/Header";
+import backgroundHomeImg from "../assets/backgroundHome_img.svg?url";
+import focusIcon from "../assets/landingicons/focusicon.svg?url";
+import userIcon from "../assets/landingicons/usericon.svg?url";
+import clockIcon from "../assets/landingicons/clockicon.svg?url";
+import layoutDashboardIcon from "../assets/landingicons/layoutDashboard.svg?url";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
-    "Focus": <Focus className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
-    "Users": <Users className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
-    "Clock": <Clock className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
-    "LayoutDashboard": <LayoutDashboard className="h-[20px] w-[20px] text-gray-400 stroke-[1.5]" />,
+    "Focus": <img src={focusIcon} alt="Focus" className="w-15 h-15" />,
+    "Users": <img src={userIcon} alt="Users" className="w-15 h-15" />,
+    "Clock": <img src={clockIcon} alt="Clock" className="w-15 h-15" />,
+    "LayoutDashboard": <img src={layoutDashboardIcon} alt="Layout Dashboard" className="w-15 h-15" />,
 };
 
 export default function LandingPage() {
@@ -19,17 +24,23 @@ export default function LandingPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white flex flex-col font-sans">
-            {/* Shared header with purple brand background */}
-            <Header bg="#58008e" />
+        <div className="h-screen bg-white flex flex-col font-sans">
+            <Header bg="#4A4A4A" />
 
             {/* Hero Section */}
-            <section className="relative bg-[#E8E8E8] overflow-hidden">
-                <div className="w-full px-12 lg:px-20 py-20 relative z-10 max-w-[760px]">
-                    <h1 className="text-[48px] lg:text-[56px] font-bold text-[#58008e] leading-[1.1] mb-6">
-                        {LANDING_PAGE_CONTENT.hero.title}
-                    </h1>
-                    <div className="text-[#7c3aed] text-[16px] leading-[1.7] mb-10">
+            <section className="relative overflow-hidden flex-2 flex items-center" style={{ backgroundColor: "#E8E8E8" }}>
+                <img
+                    src={backgroundHomeImg}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-y-0 right-0 h-full w-auto pointer-events-none select-none"
+                />
+                <div className="w-full px-12 lg:px-20 py-20 relative z-10">
+             <h1 className="text-[64px] font-semibold text-[#101828] leading-[140%] tracking-[0.2px] mb-6">
+    {LANDING_PAGE_CONTENT.hero.title}
+</h1>
+
+<div className="text-[#101828] text-[20px] font-normal leading-[140%] tracking-[0.2px] mb-10">
                         {LANDING_PAGE_CONTENT.hero.subtitle.map((line, i) => (
                             <p key={i}>{line}</p>
                         ))}
@@ -43,29 +54,34 @@ export default function LandingPage() {
                     </Button>
                 </div>
 
-                {/* Decorative circles */}
-                <div className="absolute top-[-10%] right-[-8%] pointer-events-none">
-                    <div className="relative w-[520px] h-[520px] flex items-center justify-center">
-                        <div className="absolute w-[520px] h-[520px] rounded-full border border-white/60" />
-                        <div className="absolute w-[380px] h-[380px] rounded-full border border-white/60" />
-                        <div className="absolute w-[240px] h-[240px] rounded-full border border-white/60" />
-                        <div className="absolute w-[120px] h-[120px] rounded-full border border-white/60" />
-                        <div className="absolute top-[8%] left-[32%] w-8 h-8 rounded-full border border-white/60" />
-                        <div className="absolute top-[18%] right-[6%] w-6 h-6 rounded-full border border-white/60" />
-                        <div className="absolute bottom-[28%] right-[-2%] w-10 h-10 rounded-full border border-white/60" />
-                        <div className="absolute bottom-[10%] left-[38%] w-5 h-5 rounded-full border border-white/60" />
-                    </div>
-                </div>
+              
             </section>
 
             {/* Features Section */}
-            <section className="relative bg-white px-12 lg:px-20 py-16 overflow-hidden">
-                {/* Decorative blobs */}
-                <div className="absolute bottom-[-60px] right-[-60px] w-[340px] h-[340px] rounded-full bg-[#f3e8ff]/40 pointer-events-none" />
-                <div className="absolute bottom-[20px] right-[180px] w-[180px] h-[180px] rounded-full bg-[#f3e8ff]/30 pointer-events-none" />
+            <section className="relative px-12 lg:px-20 py-16 overflow-hidden flex-[1.5] flex items-center" style={{ backgroundColor: "#FAFAFA" }}>
+                <svg
+                    viewBox="0 0 1440 602"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute inset-0 w-full h-full pointer-events-none select-none"
+                    preserveAspectRatio="none"
+                    aria-hidden="true"
+                >
+                    <g opacity="0.06">
+                        <circle cx="120.306" cy="373.747" r="332.669" stroke="#667085" strokeWidth="3.41199" fill="none"/>
+                        <circle cx="120.305" cy="373.745" r="259.057" stroke="#667085" strokeWidth="2.65699" fill="none"/>
+                        <circle cx="121.729" cy="373.744" r="189.692" stroke="#667085" strokeWidth="1.94556" fill="none"/>
+                        <circle cx="121.728" cy="373.745" r="116.08" stroke="#667085" strokeWidth="1.19057" fill="none"/>
+                        <circle cx="366.464" cy="312.562" r="14.9941" fill="#667085" stroke="#667085" strokeWidth="1.31504"/>
+                        <circle cx="111.059" cy="37.9461" r="22.8909" fill="#667085" stroke="#667085" strokeWidth="1.17287"/>
+                        <circle cx="404.169" cy="530.971" r="22.6244" fill="#667085" stroke="#667085" strokeWidth="1.70599"/>
+                        <circle cx="220.618" cy="313.274" r="22.6244" fill="#667085" stroke="#667085" strokeWidth="1.70599"/>
+                        <circle cx="89.7156" cy="545.202" r="22.6244" fill="#667085" stroke="#667085" strokeWidth="1.70599"/>
+                        <circle cx="-4.19451" cy="217.941" r="22.7488" fill="#667085" stroke="#667085" strokeWidth="1.4572"/>
+                    </g>
+                </svg>
 
-                <div className="relative z-10">
-                    <h2 className="text-[28px] font-bold text-[#111827] mb-2">
+                <div className="relative z-10 w-full">
+                    <h2 className="text-[28px] font-semibold text-[#111827] mb-2">
                         {LANDING_PAGE_CONTENT.card.heading}
                     </h2>
                     <p className="text-[#6b7280] text-[14.5px] mb-10">

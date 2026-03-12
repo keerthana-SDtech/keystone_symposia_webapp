@@ -48,7 +48,7 @@ export const signupUiSchema: UISchemaElement = {
     {
       type: 'Control',
       scope: '#/properties/name',
-      label: 'Full Name',
+      label: 'Name',
       options: { placeholder: 'Enter your name' },
     },
     {
