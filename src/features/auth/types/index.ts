@@ -15,7 +15,7 @@ export interface AuthResponse {
 
 /** Map backend role string to a frontend UserRole. */
 export function mapBackendRole(role: string): UserRole {
-    if (role === 'submitter') return 'external_scientist';
+    if (role.includes('external')) return 'external_scientist';
     if (role === 'tenant_admin') return 'tenant_admin';
     if (role === 'study_group_reviewer') return 'study_group_reviewer';
     return 'keystone_member';
