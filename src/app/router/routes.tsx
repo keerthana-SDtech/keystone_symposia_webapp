@@ -28,7 +28,7 @@ export const appRoutes: RouteObject[] = [
   { path: '/forgot-password', element: <GuestRoute><ForgotPasswordPage /></GuestRoute> },
 
   // ── External scientist ────────────────────────────────────────────────────
-  { path: '/home',       element: <LandingPage /> },
+  { path: '/home',       element: <ProtectedRoute allowedRoles={['external_scientist']}><LandingPage /></ProtectedRoute> },
   { path: '/submission', element: <ProtectedRoute allowedRoles={['external_scientist', 'keystone_member']}><SubmissionPage /></ProtectedRoute> },
 
   // ── Shared dashboard ──────────────────────────────────────────────────────

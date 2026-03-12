@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../app/providers/useAuthContext";
-import { LogOut, LayoutDashboard, UserRound } from "lucide-react";
+import { LogOut, LayoutDashboard } from "lucide-react";
+import genericAvatarIcon from "../../assets/landingicons/Generic avatar.svg?url";
 import { useTenant } from "../../hooks/useTenant";
 import { uiConfig } from "../../config/uiConfig";
 import {
@@ -44,9 +45,7 @@ export const Header = ({ bg }: HeaderProps = {}) => {
                                 <span className="hidden sm:inline-block text-[#e5e7eb] font-medium text-[14.5px] group-hover:text-white transition-colors">
                                     {uiConfig.header.welcomePrefix}{user.name}
                                 </span>
-                                <div className="h-9 w-9 rounded-full bg-gray-400 flex items-center justify-center">
-                                    <UserRound className="h-5 w-5 text-white" />
-                                </div>
+                                <img src={genericAvatarIcon} alt="User avatar" className="h-9 w-9 rounded-full" />
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl border-gray-100 shadow-xl">
