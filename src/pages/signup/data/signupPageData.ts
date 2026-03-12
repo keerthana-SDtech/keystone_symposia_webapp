@@ -1,5 +1,5 @@
 export const SIGNUP_PAGE_CONTENT = {
-  heading: "Create Account",
+  heading: "Get Started",
   subheadingPrefix: "Join ",
   subheadingSuffix: " to submit your scientific concepts",
   signUpButton: "Sign Up",

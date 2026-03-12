@@ -2,6 +2,7 @@ import { Navigate, type RouteObject } from 'react-router-dom'
 import LandingPage from '../../pages/LandingPage'
 import LoginPage from '../../pages/LoginPage'
 import SignupPage from '../../pages/SignupPage'
+import ForgotPasswordPage from '../../pages/ForgotPasswordPage'
 import SubmissionPage from '../../pages/SubmissionPage'
 import DashboardPage from '../../pages/DashboardPage'
 import SubmissionDetailPage from '../../pages/SubmissionDetailPage'
@@ -23,10 +24,11 @@ export const appRoutes: RouteObject[] = [
   // ── Guest-only (redirect authenticated users to their role home) ──────────
   { path: '/',       element: <GuestRoute><LoginPage variant="external" /></GuestRoute> },
   { path: '/signin', element: <GuestRoute><LoginPage variant="staff"    /></GuestRoute> },
-  { path: '/signup', element: <GuestRoute><SignupPage /></GuestRoute> },
+  { path: '/signup',           element: <GuestRoute><SignupPage /></GuestRoute> },
+  { path: '/forgot-password', element: <GuestRoute><ForgotPasswordPage /></GuestRoute> },
 
   // ── External scientist ────────────────────────────────────────────────────
-  { path: '/home',       element: <ProtectedRoute allowedRoles={['external_scientist']}><LandingPage /></ProtectedRoute> },
+  { path: '/home',       element: <LandingPage /> },
   { path: '/submission', element: <ProtectedRoute allowedRoles={['external_scientist', 'keystone_member']}><SubmissionPage /></ProtectedRoute> },
 
   // ── Shared dashboard ──────────────────────────────────────────────────────

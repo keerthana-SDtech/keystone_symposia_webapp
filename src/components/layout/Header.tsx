@@ -1,9 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useAuthContext } from "../../app/providers/useAuthContext";
-import { LogOut, LayoutDashboard } from "lucide-react";
+import { LogOut, LayoutDashboard, UserRound } from "lucide-react";
 import { useTenant } from "../../hooks/useTenant";
 import { uiConfig } from "../../config/uiConfig";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -19,7 +18,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ bg }: HeaderProps = {}) => {
-    const { name, logo, logoWidth, logoHeight } = useTenant();
+    const { name, logo , logoWidth, logoHeight } = useTenant();
     const { user, logout } = useAuthContext();
     const navigate = useNavigate();
 
@@ -45,10 +44,9 @@ export const Header = ({ bg }: HeaderProps = {}) => {
                                 <span className="hidden sm:inline-block text-[#e5e7eb] font-medium text-[14.5px] group-hover:text-white transition-colors">
                                     {uiConfig.header.welcomePrefix}{user.name}
                                 </span>
-                                <Avatar className="h-9 w-9 border border-gray-500 bg-primary">
-                                    <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`} alt={user.name} />
-                                    <AvatarFallback className="bg-primary/20 text-white select-none">{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-                                </Avatar>
+                                <div className="h-9 w-9 rounded-full bg-gray-400 flex items-center justify-center">
+                                    <UserRound className="h-5 w-5 text-white" />
+                                </div>
                             </div>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-56 mt-2 rounded-xl border-gray-100 shadow-xl">

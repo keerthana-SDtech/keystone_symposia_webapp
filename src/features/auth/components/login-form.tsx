@@ -39,72 +39,88 @@ export const LoginForm = ({ schema, uiSchema, variant = 'external' }: LoginFormP
     };
 
     return (
-        <div className="w-full">
-            <div className="flex flex-col items-start mb-10">
-                <img
-                    src={logoDark ?? logo}
-                    alt={name}
-                    style={{ width: logoWidth, height: logoHeight }}
-                    className="mb-8 object-contain"
+ <div className="w-full max-w-[460px] mx-auto">
+    <div className="flex flex-col items-center text-center mb-10">
+        <img
+            src={logoDark ?? logo}
+            alt={name}
+            style={{ width: logoWidth, height: logoHeight }}
+            className="mb-10 object-contain"
+        />
+
+        <h2 className="text-[36px] font-semibold text-[#111827] mb-3">
+            {LOGIN_PAGE_CONTENT.heading}
+        </h2>
+
+        <p className="text-[#6b7280] text-[15px]">
+            {LOGIN_PAGE_CONTENT.subheading}
+        </p>
+    </div>
+
+    {error && (
+        <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-[14px]">
+            {error}
+        </div>
+    )}
+
+    <form onSubmit={handleSubmit} className="space-y-6">
+        <JsonForms
+            schema={schema}
+            uischema={uiSchema}
+            data={data}
+            renderers={customRenderers}
+            onChange={handleChange}
+            validationMode={showErrors ? "ValidateAndShow" : "ValidateAndHide"}
+        />
+
+        <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center space-x-2">
+                <Checkbox
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                    className="w-[18px] h-[18px] border-gray-300 rounded-[4px] data-[state=checked]:bg-primary"
                 />
-                <h2 className="text-[30px] font-bold text-[#111827] mb-3">{LOGIN_PAGE_CONTENT.heading}</h2>
-                <p className="text-[#6b7280] text-[14.5px]">
-                    {LOGIN_PAGE_CONTENT.subheading}
-                </p>
+                <Label
+                    htmlFor="rememberMe"
+                    className="text-[14px] text-[#374151] cursor-pointer font-normal"
+                >
+                    {LOGIN_PAGE_CONTENT.rememberMe}
+                </Label>
             </div>
 
-            {error && (
-                <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 rounded-md text-[14px]">
-                    {error}
-                </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <JsonForms
-                    schema={schema}
-                    uischema={uiSchema}
-                    data={data}
-                    renderers={customRenderers}
-                    onChange={handleChange}
-                    validationMode={showErrors ? "ValidateAndShow" : "ValidateAndHide"}
-                />
-
-                <div className="flex items-center justify-between pt-1">
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            id="rememberMe"
-                            checked={rememberMe}
-                            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-                            className="w-[18px] h-[18px] border-gray-300 rounded-[4px] data-[state=checked]:bg-primary"
-                        />
-                        <Label htmlFor="rememberMe" className="text-[14px] text-[#374151] cursor-pointer font-normal">
-                            {LOGIN_PAGE_CONTENT.rememberMe}
-                        </Label>
-                    </div>
-                    {variant === 'external' && (
-                        <Link to="/forgot-password" className="text-[14px] font-medium text-primary hover:underline">
-                            {LOGIN_PAGE_CONTENT.forgotPassword}
-                        </Link>
-                    )}
-                </div>
-
-                <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full bg-primary hover:opacity-90 text-primary-foreground h-[46px] text-[15px] font-normal rounded-md shadow-sm hover:shadow-md transition-all mt-6"
+            {variant === 'external' && (
+                <Link
+                    to="/forgot-password"
+                    className="text-[14px] font-medium text-primary hover:underline"
                 >
-                    {isLoading ? LOGIN_PAGE_CONTENT.loginButtonLoading : LOGIN_PAGE_CONTENT.loginButton}
-                </Button>
-
-                {variant === 'external' && (
-                    <p className="text-center text-[14px] text-[#374151] mt-6">
-                        {LOGIN_PAGE_CONTENT.noAccount}{" "}
-                        <Link to="/signup" className="text-primary font-medium hover:underline">
-                            {LOGIN_PAGE_CONTENT.signUpLink}
-                        </Link>
-                    </p>
-                )}
-            </form>
+                    {LOGIN_PAGE_CONTENT.forgotPassword}
+                </Link>
+            )}
         </div>
+
+        <Button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-primary hover:opacity-90 text-primary-foreground h-[48px] text-[16px] font-medium rounded-lg shadow-sm hover:shadow-md transition-all mt-6"
+        >
+            {isLoading
+                ? LOGIN_PAGE_CONTENT.loginButtonLoading
+                : LOGIN_PAGE_CONTENT.loginButton}
+        </Button>
+
+        {variant === 'external' && (
+            <p className="text-center text-[14px] text-[#374151] mt-6">
+                {LOGIN_PAGE_CONTENT.noAccount}{" "}
+                <Link
+                    to="/signup"
+                    className="text-primary font-medium hover:underline"
+                >
+                    {LOGIN_PAGE_CONTENT.signUpLink}
+                </Link>
+            </p>
+        )}
+    </form>
+</div>
     );
 };
