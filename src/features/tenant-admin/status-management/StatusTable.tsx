@@ -54,7 +54,6 @@ export const StatusTable = ({ statuses, totalCount, search, onSearchChange, onTo
                     </span>
                   </td>
                   <td className="py-3.5 px-4 text-[13px] text-gray-500 max-w-[200px]"><span className="block truncate">{status.description}</span></td>
-                  <td className="py-3.5 px-4 text-[13px] text-gray-500 max-w-[180px]"><span className="block truncate">{status.assignedStages.join(", ")}</span></td>
                   <td className="py-3.5 px-4"><Toggle checked={status.enabled} onChange={() => onToggle(status.id)} onClick={e => e.stopPropagation()} /></td>
                   <td className="py-3.5 px-4">
                     <ActionsMenu actions={[

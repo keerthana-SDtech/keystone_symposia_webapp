@@ -2,28 +2,25 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/shared/Toggle";
-import { MultiSelect } from "@/components/ui/multi-select";
 import { ADD_STATUS_CONTENT, type Status } from "./statusData";
 import { ColorPickerPanel } from "./ColorPickerPanel";
 
 interface AddStatusModalProps {
-  isOpen:        boolean;
-  onClose:       () => void;
-  onSave:        (data: Omit<Status, "id">) => void;
-  editData?:     Status | null;
-  stageOptions?: string[];
+  isOpen:    boolean;
+  onClose:   () => void;
+  onSave:    (data: Omit<Status, "id">) => void;
+  editData?: Status | null;
 }
 
 type Tab = "basicInfo" | "colorPicker";
 
 interface FormState {
-  name: string; description: string; assignedStages: string[];
-  enabled: boolean; color: string; opacity: number;
+  name: string; description: string; enabled: boolean; color: string; opacity: number;
 }
 
-const EMPTY_FORM: FormState = { name: "", description: "", assignedStages: [], enabled: true, color: "#7B2FBE", opacity: 100 };
+const EMPTY_FORM: FormState = { name: "", description: "", enabled: true, color: "#7B2FBE", opacity: 100 };
 
-export const AddStatusModal = ({ isOpen, onClose, onSave, editData, stageOptions = [] }: AddStatusModalProps) => {
+export const AddStatusModal = ({ isOpen, onClose, onSave, editData }: AddStatusModalProps) => {
   const [tab,  setTab]  = useState<Tab>("basicInfo");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
@@ -31,7 +28,7 @@ export const AddStatusModal = ({ isOpen, onClose, onSave, editData, stageOptions
     if (isOpen) {
       setTab("basicInfo");
       setForm(editData
-        ? { name: editData.name, description: editData.description, assignedStages: editData.assignedStages, enabled: editData.enabled, color: editData.color, opacity: 100 }
+        ? { name: editData.name, description: editData.description, enabled: editData.enabled, color: editData.color, opacity: 100 }
         : EMPTY_FORM
       );
     }
@@ -46,7 +43,7 @@ export const AddStatusModal = ({ isOpen, onClose, onSave, editData, stageOptions
 
   const handleSave = () => {
     if (!form.name) return;
-    onSave({ name: form.name, description: form.description, assignedStages: form.assignedStages, enabled: form.enabled, color: form.color });
+    onSave({ name: form.name, description: form.description, enabled: form.enabled, color: form.color });
     onClose();
   };
 
@@ -86,15 +83,6 @@ export const AddStatusModal = ({ isOpen, onClose, onSave, editData, stageOptions
               <div>
                 <label className={labelCls}>{fields.description.label}</label>
                 <textarea rows={3} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} placeholder={fields.description.placeholder} className={textareaCls} />
-              </div>
-              <div>
-                <label className={labelCls}>{fields.assignStages.label}</label>
-                <MultiSelect
-                  options={stageOptions}
-                  selected={form.assignedStages}
-                  placeholder="Select stages"
-                  onChange={v => setForm(p => ({ ...p, assignedStages: v }))}
-                />
               </div>
               <div className="flex items-center gap-2.5">
                 <Toggle checked={form.enabled} onChange={() => setForm(p => ({ ...p, enabled: !p.enabled }))} />

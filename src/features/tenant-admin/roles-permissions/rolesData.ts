@@ -60,15 +60,6 @@ export interface Role {
   enabled: boolean;
 }
 
-export const MOCK_ROLES: Role[] = [
-  { id: "01", name: "Keystone Staff",  description: "Internal team members",   permissionIds: ["concept.view","concept.create","concept.edit"], enabled: true  },
-  { id: "02", name: "Mentor",          description: "External role related",    permissionIds: ["concept.view"],                                 enabled: false },
-  { id: "03", name: "Super Admin",     description: "Internal team standard",   permissionIds: [],                                               enabled: true  },
-  { id: "04", name: "Admin",           description: "Internal team standard",   permissionIds: [],                                               enabled: true  },
-  { id: "05", name: "Study Group",     description: "Internal team members",    permissionIds: ["proposal.view"],                                enabled: true  },
-  { id: "06", name: "Organizer",       description: "Internal (part members)",  permissionIds: ["concept.view","concept.create","proposal.view","proposal.edit"], enabled: true },
-  { id: "07", name: "SAE Member",      description: "Internal (part members)",  permissionIds: ["concept.view","proposal.view","review.view"],   enabled: true  },
-];
 
 export const CREATE_ROLE_CONTENT = {
   createTitle: "Create Role",

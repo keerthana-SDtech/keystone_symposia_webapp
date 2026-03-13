@@ -58,20 +58,6 @@ export interface EmailTrigger {
   enabled:       boolean;
 }
 
-export const MOCK_EMAIL_TRIGGERS: EmailTrigger[] = [
-  { id: "01", name: "On Submission",        description: "Fires when a new concept is submitted",          emailTemplate: "Submission Confirmation",      sendTo: ["Ideator"],                    enabled: true  },
-  { id: "02", name: "On Status Change",     description: "Fires whenever a concept status is updated",     emailTemplate: "Status Change Notification",   sendTo: ["Ideator"],                    enabled: false },
-  { id: "03", name: "On Review Assigned",   description: "Fires when a reviewer is assigned",              emailTemplate: "Review Assignment",            sendTo: ["Reviewer"],                   enabled: true  },
-  { id: "04", name: "On Stage Transition",  description: "Fires when a concept moves to a new stage",      emailTemplate: "Stage Transition Notice",       sendTo: ["Keystone Staff"],             enabled: true  },
-  { id: "05", name: "On Review Window",     description: "Fires when a review window opens",               emailTemplate: "Review Window Opening",         sendTo: ["Study Group"],                enabled: true  },
-  { id: "06", name: "On Review Submitted",  description: "Fires when a reviewer submits their review",     emailTemplate: "Review Submitted Notification", sendTo: ["Study Group","Keystone Staff"], enabled: true },
-  { id: "07", name: "On User Invited",      description: "Fires when a new user is invited",               emailTemplate: "User Invitation",              sendTo: ["Organizer"],                  enabled: true  },
-  { id: "08", name: "On Password Reset",    description: "Fires when a user requests a password reset",    emailTemplate: "Password Reset",               sendTo: ["Ideator"],                    enabled: true  },
-  { id: "09", name: "On Concept Approved",  description: "Fires when a concept is approved",               emailTemplate: "Status Change Notification",   sendTo: ["Ideator","Organizer"],        enabled: true  },
-  { id: "10", name: "On Concept Rejected",  description: "Fires when a concept is rejected",               emailTemplate: "Status Change Notification",   sendTo: ["Ideator"],                    enabled: false },
-  { id: "11", name: "On Stage Reminder",    description: "Fires as a reminder before a stage deadline",    emailTemplate: "Stage Transition Notice",       sendTo: ["Keystone Staff","Reviewer"],  enabled: true  },
-  { id: "12", name: "On Welcome",           description: "Fires when a new user completes registration",   emailTemplate: "Welcome Email",                sendTo: ["Ideator"],                    enabled: true  },
-];
 
 export const CREATE_TRIGGER_CONTENT = {
   createTitle: "Create Email Trigger",

@@ -7,13 +7,31 @@ import { ActionsMenu } from "@/components/ui/actions-menu";
 import { AddStageDrawer } from "./AddStageDrawer";
 import { WORKFLOW_PAGE_CONTENT, type Stage } from "./workflowData";
 import { workflowApi } from "./api";
+import { statusApi } from "../status-management/api";
+import { rolesApi } from "../roles-permissions/api";
 
 const RoleTag = ({ label }: { label: string }) => (
   <span className="px-2.5 py-0.5 text-[11px] font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-200 whitespace-nowrap">{label}</span>
 );
 
+const ActionPill = ({ code, isTerminal }: { code: string; isTerminal: boolean }) => {
+  const label = code.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+  return (
+    <span className={`px-2 py-0.5 text-[11px] font-medium rounded-full border whitespace-nowrap ${
+      isTerminal
+        ? "text-red-600 bg-red-50 border-red-200"
+        : "text-blue-600 bg-blue-50 border-blue-200"
+    }`}>
+      {label}
+    </span>
+  );
+};
+
 export const WorkflowView = () => {
-  const [stages,     setStages]     = useState<Stage[]>([]);
+  const [stages,        setStages]        = useState<Stage[]>([]);
+  const [stageOptions,  setStageOptions]  = useState<{ id: string; name: string }[]>([]);
+  const [statusOptions, setStatusOptions] = useState<{ id: string; name: string }[]>([]);
+  const [roleOptions,   setRoleOptions]   = useState<string[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [editStage,  setEditStage]  = useState<Stage | null>(null);
@@ -29,8 +47,13 @@ export const WorkflowView = () => {
   };
 
   useEffect(() => {
-    workflowApi.list()
-      .then(data => setStages(data))
+    Promise.all([workflowApi.list(), statusApi.list(), rolesApi.list()])
+      .then(([stageList, statusList, roleList]) => {
+        setStages(stageList);
+        setStageOptions(stageList.map(s => ({ id: s.id, name: s.name })));
+        setStatusOptions(statusList.map(s => ({ id: s.id, name: s.name })));
+        setRoleOptions(roleList.map(r => r.name));
+      })
       .catch(() => showToast("Failed to load stages"))
       .finally(() => setLoading(false));
   }, []);
@@ -47,7 +70,12 @@ export const WorkflowView = () => {
   const onDragEnd = () => { dragIndex.current = null; setDragOver(null); };
 
   const handleCreate = async (data: Omit<Stage, "id" | "locked">) => {
-    try { const created = await workflowApi.create(data); setStages(prev => [...prev, created]); showToast("Stage added successfully"); }
+    try {
+      const created = await workflowApi.create(data);
+      setStages(prev => [...prev, created]);
+      setStageOptions(prev => [...prev, { id: created.id, name: created.name }]);
+      showToast("Stage added successfully");
+    }
     catch { showToast("Failed to add stage"); }
   };
 
@@ -106,7 +134,14 @@ export const WorkflowView = () => {
               </div>
               <p className="text-[12px] text-gray-400 mt-0.5 truncate">{stage.description}</p>
             </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end max-w-[260px]">
+            {stage.statusActions && stage.statusActions.length > 0 && (
+              <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end max-w-[200px]">
+                {stage.statusActions.map(a => (
+                  <ActionPill key={a.actionCode} code={a.actionCode} isTerminal={a.toStageId === null} />
+                ))}
+              </div>
+            )}
+            <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end max-w-[200px]">
               {stage.roles.map(r => <RoleTag key={r} label={r} />)}
             </div>
             <div className="flex-shrink-0">
@@ -123,7 +158,7 @@ export const WorkflowView = () => {
       {loading && <p className="text-center text-[14px] text-gray-400 mt-12">Loading...</p>}
       {!loading && stages.length === 0 && <p className="text-center text-[14px] text-gray-400 mt-12">{WORKFLOW_PAGE_CONTENT.emptyState}</p>}
 
-      <AddStageDrawer isOpen={drawerOpen} onClose={() => { setDrawerOpen(false); setEditStage(null); }} onSave={editStage ? handleEdit : handleCreate} editData={editStage} stageNames={stages.map(s => s.name)} />
+      <AddStageDrawer isOpen={drawerOpen} onClose={() => { setDrawerOpen(false); setEditStage(null); }} onSave={editStage ? handleEdit : handleCreate} editData={editStage} stageOptions={stageOptions} statusOptions={statusOptions} roleOptions={roleOptions} />
 
       <DeleteConfirmModal
         isOpen={deleteId !== null}

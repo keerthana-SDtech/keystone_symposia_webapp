@@ -5,11 +5,9 @@ import { DeleteConfirmModal } from "@/components/shared/DeleteConfirmModal";
 import { Toast } from "@/components/ui/toast";
 import { type Status } from "./statusData";
 import { statusApi } from "./api";
-import { workflowApi } from "../workflow-stages/api";
 
 export const StatusManagementView = () => {
-  const [statuses,     setStatuses]     = useState<Status[]>([]);
-  const [stageOptions, setStageOptions] = useState<string[]>([]);
+  const [statuses, setStatuses] = useState<Status[]>([]);
   const [search,       setSearch]       = useState("");
   const [modalOpen,    setModalOpen]    = useState(false);
   const [editStatus,   setEditStatus]   = useState<Status | null>(null);
@@ -22,11 +20,8 @@ export const StatusManagementView = () => {
   };
 
   useEffect(() => {
-    Promise.all([statusApi.list(), workflowApi.list()])
-      .then(([statusList, stageList]) => {
-        setStatuses(statusList);
-        setStageOptions(stageList.map(s => s.name));
-      })
+    statusApi.list()
+      .then(setStatuses)
       .catch(() => showToast("Failed to load statuses"));
   }, []);
 
@@ -67,7 +62,7 @@ export const StatusManagementView = () => {
         onCreate={() => { setEditStatus(null); setModalOpen(true); }}
       />
 
-      <AddStatusModal isOpen={modalOpen} onClose={() => { setModalOpen(false); setEditStatus(null); }} onSave={editStatus ? handleEdit : handleCreate} editData={editStatus} stageOptions={stageOptions} />
+      <AddStatusModal isOpen={modalOpen} onClose={() => { setModalOpen(false); setEditStatus(null); }} onSave={editStatus ? handleEdit : handleCreate} editData={editStatus} />
 
       <DeleteConfirmModal
         isOpen={deleteId !== null}
