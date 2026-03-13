@@ -6,7 +6,6 @@ interface ApiStatus {
   name: string;
   color: string;
   description: string | null;
-  assignedStages: string[];
   enabled: boolean;
   displayOrder: number;
 }
@@ -17,7 +16,6 @@ function toStatus(s: ApiStatus): Status {
     color: s.color,
     name: s.name,
     description: s.description ?? '',
-    assignedStages: s.assignedStages ?? [],
     enabled: s.enabled,
   };
 }
