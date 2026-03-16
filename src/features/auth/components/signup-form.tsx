@@ -16,7 +16,7 @@ interface SignupFormProps {
 
 export const SignupForm = ({ schema, uiSchema }: SignupFormProps) => {
   const { signup, isLoading, error } = useAuth();
-  const { name, logo, logoDark, logoWidth, logoHeight } = useTenant();
+  const { name, logo, logoWidth, logoHeight } = useTenant();
 
   const [data, setData] = useState<Record<string, any>>({
     name: "",
@@ -93,7 +93,7 @@ export const SignupForm = ({ schema, uiSchema }: SignupFormProps) => {
     <div className="w-full max-w-[460px] mx-auto">
       <div className="flex flex-col items-center text-center mb-10">
         <img
-          src={logoDark ?? logo}
+          src={logo}
           alt={name}
           style={{ width: logoWidth, height: logoHeight }}
           className="mb-10 object-contain"
