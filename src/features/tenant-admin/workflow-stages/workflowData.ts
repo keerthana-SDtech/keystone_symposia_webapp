@@ -7,6 +7,7 @@ export const WORKFLOW_PAGE_CONTENT = {
   emptyState: "No stages found.",
 };
 
+export const ROLE_OPTIONS           = ["Ideator", "Keystone Staff", "Study Group", "Organizer", "SAB Member"];
 export const ALLOWED_ACTION_OPTIONS = ["View", "Edit", "Submit", "Review", "Delete", "Export"];
 
 export interface StatusActionItem {

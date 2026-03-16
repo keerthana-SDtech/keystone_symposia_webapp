@@ -5,36 +5,25 @@ import { DeleteConfirmModal } from "@/components/shared/DeleteConfirmModal";
 import { Toast } from "@/components/ui/toast";
 import { ActionsMenu } from "@/components/ui/actions-menu";
 import { AddStageDrawer } from "./AddStageDrawer";
-import { WORKFLOW_PAGE_CONTENT, type Stage } from "./workflowData";
+import {
+  WORKFLOW_PAGE_CONTENT,
+  ROLE_OPTIONS,
+  ALLOWED_ACTION_OPTIONS,
+  type Stage,
+} from "./workflowData";
 import { workflowApi } from "./api";
 
 const RoleTag = ({ label }: { label: string }) => (
   <span className="px-2.5 py-0.5 text-[11px] font-medium text-gray-600 bg-gray-100 rounded-full border border-gray-200 whitespace-nowrap">{label}</span>
 );
 
-const ActionPill = ({ code, isTerminal }: { code: string; isTerminal: boolean }) => {
-  const label = code.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-  return (
-    <span className={`px-2 py-0.5 text-[11px] font-medium rounded-full border whitespace-nowrap ${
-      isTerminal
-        ? "text-red-600 bg-red-50 border-red-200"
-        : "text-blue-600 bg-blue-50 border-blue-200"
-    }`}>
-      {label}
-    </span>
-  );
-};
-
 export const WorkflowView = () => {
-  const [stages,              setStages]              = useState<Stage[]>([]);
-  const [roleOptions,         setRoleOptions]         = useState<string[]>([]);
-  const [statusActionOptions, setStatusActionOptions] = useState<string[]>([]);
-  const [allowedActionOptions,setAllowedActionOptions]= useState<string[]>([]);
-  const [loading,             setLoading]             = useState(true);
-  const [drawerOpen,          setDrawerOpen]          = useState(false);
-  const [editStage,           setEditStage]           = useState<Stage | null>(null);
-  const [deleteId,            setDeleteId]            = useState<string | null>(null);
-  const [toast,               setToast]               = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
+  const [stages,     setStages]     = useState<Stage[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [editStage,  setEditStage]  = useState<Stage | null>(null);
+  const [deleteId,   setDeleteId]   = useState<string | null>(null);
+  const [toast,      setToast]      = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
 
   const dragIndex = useRef<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
@@ -45,19 +34,9 @@ export const WorkflowView = () => {
   };
 
   useEffect(() => {
-    Promise.all([
-      workflowApi.list(),
-      workflowApi.listRoleNames(),
-      workflowApi.listStatusActionOptions(),
-      workflowApi.listAllowedActionOptions(),
-    ])
-      .then(([stageList, roles, statusActions, allowedActions]) => {
-        setStages(stageList);
-        setRoleOptions(roles);
-        setStatusActionOptions(statusActions);
-        setAllowedActionOptions(allowedActions);
-      })
-      .catch(() => showToast("Failed to load workflow data"))
+    workflowApi.list()
+      .then(setStages)
+      .catch(() => showToast("Failed to load stages"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -67,8 +46,14 @@ export const WorkflowView = () => {
     e.preventDefault();
     const from = dragIndex.current;
     if (from === null || from === dropIndex) { setDragOver(null); return; }
-    setStages(prev => { const next = [...prev]; const [moved] = next.splice(from, 1); next.splice(dropIndex, 0, moved); return next; });
-    dragIndex.current = null; setDragOver(null);
+    setStages(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(dropIndex, 0, moved);
+      return next;
+    });
+    dragIndex.current = null;
+    setDragOver(null);
   };
   const onDragEnd = () => { dragIndex.current = null; setDragOver(null); };
 
@@ -77,26 +62,57 @@ export const WorkflowView = () => {
       const created = await workflowApi.create(data);
       setStages(prev => [...prev, created]);
       showToast("Stage added successfully");
+    } catch {
+      showToast("Failed to add stage");
     }
-    catch { showToast("Failed to add stage"); }
   };
 
   const handleEdit = async (data: Omit<Stage, "id" | "locked">) => {
     if (!editStage) return;
-    try { const updated = await workflowApi.update(editStage.id, data); setStages(prev => prev.map(s => s.id === editStage.id ? updated : s)); setEditStage(null); showToast("Stage updated successfully"); }
-    catch { showToast("Failed to update stage"); }
+    try {
+      const updated = await workflowApi.update(editStage.id, data);
+      setStages(prev => prev.map(s => s.id === editStage.id ? updated : s));
+      setEditStage(null);
+      showToast("Stage updated successfully");
+    } catch {
+      showToast("Failed to update stage");
+    }
   };
 
   const handleLock = async (id: string) => {
-    const stage = stages.find(s => s.id === id); if (!stage) return;
-    try { const updated = await workflowApi.update(id, { locked: !stage.locked }); setStages(prev => prev.map(s => s.id === id ? updated : s)); }
-    catch { showToast("Failed to update stage lock"); }
+    const stage = stages.find(s => s.id === id);
+    if (!stage) return;
+    try {
+      const updated = await workflowApi.update(id, { locked: !stage.locked });
+      setStages(prev => prev.map(s => s.id === id ? updated : s));
+    } catch {
+      showToast("Failed to update stage");
+    }
   };
 
   const handleSaveOrder = async () => {
-    try { await workflowApi.reorder(stages.map(s => s.id)); showToast("Order saved successfully"); }
-    catch { showToast("Failed to save order"); }
+    try {
+      await workflowApi.reorder(stages.map(s => s.id));
+      showToast("Order saved successfully");
+    } catch {
+      showToast("Failed to save order");
+    }
   };
+
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    try {
+      await workflowApi.remove(deleteId);
+      setStages(prev => prev.filter(s => s.id !== deleteId));
+      showToast("Stage deleted successfully");
+    } catch {
+      showToast("Failed to delete stage");
+    } finally {
+      setDeleteId(null);
+    }
+  };
+
+  const stageOptions = stages.map(s => ({ id: s.id, name: s.name }));
 
   return (
     <div className="w-full">
@@ -116,72 +132,72 @@ export const WorkflowView = () => {
         <p className="text-[13px] text-gray-500">{WORKFLOW_PAGE_CONTENT.infoBanner}</p>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {stages.map((stage, index) => (
-          <div
-            key={stage.id}
-            draggable
-            onDragStart={() => onDragStart(index)}
-            onDragOver={e => onDragOver(e, index)}
-            onDrop={e => onDrop(e, index)}
-            onDragEnd={onDragEnd}
-            className={`flex items-center gap-4 bg-white border rounded-lg px-4 py-4 shadow-[0_1px_4px_rgba(0,0,0,0.05)] transition-all ${dragOver === index ? "border-primary bg-primary/5" : "border-gray-200"} ${stage.locked ? "opacity-70" : ""}`}
-          >
-            <div className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0"><GripVertical className="w-4 h-4" /></div>
-            <span className="w-6 text-[13px] font-semibold text-gray-400 flex-shrink-0 text-center">{index + 1}</span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-[14px] font-semibold text-gray-900">{stage.name}</p>
-                {stage.locked && <Lock className="w-3.5 h-3.5 text-gray-400" />}
+      {loading ? (
+        <p className="text-center text-[14px] text-gray-400 mt-12">Loading...</p>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {stages.map((stage, index) => (
+            <div
+              key={stage.id}
+              draggable
+              onDragStart={() => onDragStart(index)}
+              onDragOver={e => onDragOver(e, index)}
+              onDrop={e => onDrop(e, index)}
+              onDragEnd={onDragEnd}
+              className={`flex items-center gap-4 bg-white border rounded-lg px-4 py-4 shadow-[0_1px_4px_rgba(0,0,0,0.05)] transition-all ${dragOver === index ? "border-primary bg-primary/5" : "border-gray-200"} ${stage.locked ? "opacity-70" : ""}`}
+            >
+              <div className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 transition-colors flex-shrink-0">
+                <GripVertical className="w-4 h-4" />
               </div>
-              <p className="text-[12px] text-gray-400 mt-0.5 truncate">{stage.description}</p>
-            </div>
-            {stage.statusActions && stage.statusActions.length > 0 && (
+              <span className="w-6 text-[13px] font-semibold text-gray-400 flex-shrink-0 text-center">{index + 1}</span>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="text-[14px] font-semibold text-gray-900">{stage.name}</p>
+                  {stage.locked && <Lock className="w-3.5 h-3.5 text-gray-400" />}
+                </div>
+                <p className="text-[12px] text-gray-400 mt-0.5 truncate">{stage.description}</p>
+              </div>
               <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end max-w-[200px]">
-                {stage.statusActions.map(a => (
-                  <ActionPill key={a.actionCode} code={a.actionCode} isTerminal={a.toStageId === null} />
-                ))}
+                {stage.roles.map(r => <RoleTag key={r} label={r} />)}
               </div>
-            )}
-            <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end max-w-[200px]">
-              {stage.roles.map(r => <RoleTag key={r} label={r} />)}
+              <div className="flex-shrink-0">
+                <ActionsMenu actions={[
+                  { label: "Edit",   onClick: () => { setEditStage(stage); setDrawerOpen(true); } },
+                  { label: "Delete", onClick: () => setDeleteId(stage.id), variant: "danger" },
+                  { label: stage.locked ? "Unlock editing" : "Lock editing", onClick: () => handleLock(stage.id) },
+                ]} />
+              </div>
             </div>
-            <div className="flex-shrink-0">
-              <ActionsMenu actions={[
-                { label: "Edit",   onClick: () => { setEditStage(stage); setDrawerOpen(true); } },
-                { label: "Delete", onClick: () => setDeleteId(stage.id), variant: "danger" },
-                { label: stage.locked ? "Unlock editing" : "Lock editing", onClick: () => handleLock(stage.id) },
-              ]} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {loading && <p className="text-center text-[14px] text-gray-400 mt-12">Loading...</p>}
-      {!loading && stages.length === 0 && <p className="text-center text-[14px] text-gray-400 mt-12">{WORKFLOW_PAGE_CONTENT.emptyState}</p>}
+          ))}
+          {stages.length === 0 && (
+            <p className="text-center text-[14px] text-gray-400 mt-12">{WORKFLOW_PAGE_CONTENT.emptyState}</p>
+          )}
+        </div>
+      )}
 
       <AddStageDrawer
         isOpen={drawerOpen}
         onClose={() => { setDrawerOpen(false); setEditStage(null); }}
         onSave={editStage ? handleEdit : handleCreate}
         editData={editStage}
-        stageNames={stages.map(s => s.name)}
-        roleOptions={roleOptions}
-        statusActionOptions={statusActionOptions}
-        allowedActionOptions={allowedActionOptions}
+        stageOptions={stageOptions}
+        roleOptions={ROLE_OPTIONS}
+        statusActionOptions={[]}
+        allowedActionOptions={ALLOWED_ACTION_OPTIONS}
       />
 
       <DeleteConfirmModal
         isOpen={deleteId !== null}
         onCancel={() => setDeleteId(null)}
-        onConfirm={async () => {
-          try { await workflowApi.remove(deleteId!); setStages(prev => prev.filter(s => s.id !== deleteId)); showToast("Stage deleted successfully"); }
-          catch { showToast("Failed to delete stage"); }
-          setDeleteId(null);
-        }}
+        onConfirm={handleDelete}
       />
 
-      <Toast message={toast.message} variant="success" visible={toast.visible} onClose={() => setToast(p => ({ ...p, visible: false }))} />
+      <Toast
+        message={toast.message}
+        variant="success"
+        visible={toast.visible}
+        onClose={() => setToast(p => ({ ...p, visible: false }))}
+      />
     </div>
   );
 };
