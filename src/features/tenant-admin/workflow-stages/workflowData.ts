@@ -10,10 +10,11 @@ export const WORKFLOW_PAGE_CONTENT = {
 export const ALLOWED_ACTION_OPTIONS = ["View", "Edit", "Submit", "Review", "Delete", "Export"];
 
 export interface StatusActionItem {
-  actionCode:  string;
-  statusId:    string | null;
-  toStageId:   string | null;
-  isTerminal?: boolean;
+  actionCode:        string;
+  label:             string;
+  resultingStatusId: string | null;
+  toStageId:         string | null;
+  isTerminal?:       boolean;
 }
 
 export interface Stage {
