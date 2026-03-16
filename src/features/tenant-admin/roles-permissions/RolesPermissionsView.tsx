@@ -3,15 +3,16 @@ import { RolesTable } from "./RolesTable";
 import { CreateRoleDrawer } from "./CreateRoleDrawer";
 import { DeleteConfirmModal } from "@/components/shared/DeleteConfirmModal";
 import { Toast } from "@/components/ui/toast";
-import { type Role } from "./rolesData";
+import { type Role, type PermissionGroup } from "./rolesData";
 import { rolesApi } from "./api";
 
 export const RolesPermissionsView = () => {
-  const [roles,    setRoles]    = useState<Role[]>([]);
-  const [search,   setSearch]   = useState("");
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editRole, setEditRole] = useState<Role | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [roles,            setRoles]            = useState<Role[]>([]);
+  const [permissionGroups, setPermissionGroups] = useState<PermissionGroup[]>([]);
+  const [search,           setSearch]           = useState("");
+  const [drawerOpen,       setDrawerOpen]       = useState(false);
+  const [editRole,         setEditRole]         = useState<Role | null>(null);
+  const [deleteId,         setDeleteId]         = useState<string | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
 
   const showToast = (message: string) => {
@@ -20,8 +21,11 @@ export const RolesPermissionsView = () => {
   };
 
   useEffect(() => {
-    rolesApi.list()
-      .then(data => setRoles(data))
+    Promise.all([rolesApi.list(), rolesApi.listPermissionGroups()])
+      .then(([roleList, groups]) => {
+        setRoles(roleList);
+        setPermissionGroups(groups);
+      })
       .catch(() => showToast("Failed to load roles"));
   }, []);
 
@@ -77,6 +81,7 @@ export const RolesPermissionsView = () => {
         onClose={() => { setDrawerOpen(false); setEditRole(null); }}
         onSave={editRole ? handleEdit : handleCreate}
         editData={editRole}
+        permissionGroups={permissionGroups}
       />
 
       <DeleteConfirmModal

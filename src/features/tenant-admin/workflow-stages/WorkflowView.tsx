@@ -28,15 +28,15 @@ const ActionPill = ({ code, isTerminal }: { code: string; isTerminal: boolean })
 };
 
 export const WorkflowView = () => {
-  const [stages,        setStages]        = useState<Stage[]>([]);
-  const [stageOptions,  setStageOptions]  = useState<{ id: string; name: string }[]>([]);
-  const [statusOptions, setStatusOptions] = useState<{ id: string; name: string }[]>([]);
-  const [roleOptions,   setRoleOptions]   = useState<string[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [editStage,  setEditStage]  = useState<Stage | null>(null);
-  const [deleteId,   setDeleteId]   = useState<string | null>(null);
-  const [toast,      setToast]      = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
+  const [stages,              setStages]              = useState<Stage[]>([]);
+  const [roleOptions,         setRoleOptions]         = useState<string[]>([]);
+  const [statusActionOptions, setStatusActionOptions] = useState<string[]>([]);
+  const [allowedActionOptions,setAllowedActionOptions]= useState<string[]>([]);
+  const [loading,             setLoading]             = useState(true);
+  const [drawerOpen,          setDrawerOpen]          = useState(false);
+  const [editStage,           setEditStage]           = useState<Stage | null>(null);
+  const [deleteId,            setDeleteId]            = useState<string | null>(null);
+  const [toast,               setToast]               = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
 
   const dragIndex = useRef<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
@@ -47,14 +47,19 @@ export const WorkflowView = () => {
   };
 
   useEffect(() => {
-    Promise.all([workflowApi.list(), statusApi.list(), rolesApi.list()])
-      .then(([stageList, statusList, roleList]) => {
+    Promise.all([
+      workflowApi.list(),
+      workflowApi.listRoleNames(),
+      workflowApi.listStatusActionOptions(),
+      workflowApi.listAllowedActionOptions(),
+    ])
+      .then(([stageList, roles, statusActions, allowedActions]) => {
         setStages(stageList);
-        setStageOptions(stageList.map(s => ({ id: s.id, name: s.name })));
-        setStatusOptions(statusList.map(s => ({ id: s.id, name: s.name })));
-        setRoleOptions(roleList.map(r => r.name));
+        setRoleOptions(roles);
+        setStatusActionOptions(statusActions);
+        setAllowedActionOptions(allowedActions);
       })
-      .catch(() => showToast("Failed to load stages"))
+      .catch(() => showToast("Failed to load workflow data"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -158,7 +163,16 @@ export const WorkflowView = () => {
       {loading && <p className="text-center text-[14px] text-gray-400 mt-12">Loading...</p>}
       {!loading && stages.length === 0 && <p className="text-center text-[14px] text-gray-400 mt-12">{WORKFLOW_PAGE_CONTENT.emptyState}</p>}
 
-      <AddStageDrawer isOpen={drawerOpen} onClose={() => { setDrawerOpen(false); setEditStage(null); }} onSave={editStage ? handleEdit : handleCreate} editData={editStage} stageOptions={stageOptions} statusOptions={statusOptions} roleOptions={roleOptions} />
+      <AddStageDrawer
+        isOpen={drawerOpen}
+        onClose={() => { setDrawerOpen(false); setEditStage(null); }}
+        onSave={editStage ? handleEdit : handleCreate}
+        editData={editStage}
+        stageNames={stages.map(s => s.name)}
+        roleOptions={roleOptions}
+        statusActionOptions={statusActionOptions}
+        allowedActionOptions={allowedActionOptions}
+      />
 
       <DeleteConfirmModal
         isOpen={deleteId !== null}

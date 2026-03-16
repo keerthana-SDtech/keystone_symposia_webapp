@@ -3,18 +3,20 @@ import { EmailTriggersTable } from "./EmailTriggersTable";
 import { CreateEmailTriggerDrawer } from "./CreateEmailTriggerDrawer";
 import { DeleteConfirmModal } from "@/components/shared/DeleteConfirmModal";
 import { Toast } from "@/components/ui/toast";
-import { type EmailTrigger } from "./emailTriggersData";
+import { type EmailTrigger, EMAIL_TEMPLATE_OPTIONS } from "./emailTriggersData";
 import { emailTriggersApi } from "./api";
+import { rolesApi } from "../roles-permissions/api";
 
 type DrawerMode = "create" | "edit" | "view";
 
 export const EmailTriggersView = () => {
-  const [triggers,    setTriggers]   = useState<EmailTrigger[]>([]);
-  const [search,      setSearch]     = useState("");
-  const [drawerOpen,  setDrawerOpen] = useState(false);
-  const [drawerMode,  setDrawerMode] = useState<DrawerMode>("create");
-  const [editTrigger, setEditTrigger] = useState<EmailTrigger | null>(null);
-  const [deleteId,    setDeleteId]   = useState<string | null>(null);
+  const [triggers,      setTriggers]    = useState<EmailTrigger[]>([]);
+  const [sendToOptions, setSendToOptions] = useState<string[]>([]);
+  const [search,        setSearch]      = useState("");
+  const [drawerOpen,    setDrawerOpen]  = useState(false);
+  const [drawerMode,    setDrawerMode]  = useState<DrawerMode>("create");
+  const [editTrigger,   setEditTrigger] = useState<EmailTrigger | null>(null);
+  const [deleteId,      setDeleteId]   = useState<string | null>(null);
   const [toast, setToast] = useState<{ visible: boolean; message: string }>({ visible: false, message: "" });
 
   const showToast = (message: string) => {
@@ -23,8 +25,11 @@ export const EmailTriggersView = () => {
   };
 
   useEffect(() => {
-    emailTriggersApi.list()
-      .then(data => setTriggers(data))
+    Promise.all([emailTriggersApi.list(), rolesApi.listRoleNames()])
+      .then(([triggerList, roleNames]) => {
+        setTriggers(triggerList);
+        setSendToOptions(roleNames);
+      })
       .catch(() => showToast("Failed to load email triggers"));
   }, []);
 
@@ -76,8 +81,13 @@ export const EmailTriggersView = () => {
       />
 
       <CreateEmailTriggerDrawer
-        isOpen={drawerOpen} mode={drawerMode} editData={editTrigger} onClose={closeDrawer}
+        isOpen={drawerOpen}
+        mode={drawerMode}
+        editData={editTrigger}
+        onClose={closeDrawer}
         onSave={drawerMode === "edit" ? handleEdit : handleCreate}
+        sendToOptions={sendToOptions}
+        emailTemplateOptions={EMAIL_TEMPLATE_OPTIONS}
       />
 
       <DeleteConfirmModal

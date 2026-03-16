@@ -3,19 +3,17 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { SingleSelect } from "@/components/ui/single-select";
-import { ADD_STAGE_CONTENT, ALLOWED_ACTION_OPTIONS, type Stage, type StatusActionItem } from "./workflowData";
-
-interface StageOption  { id: string; name: string; }
-interface StatusOption { id: string; name: string; }
+import { ADD_STAGE_CONTENT, type Stage } from "./workflowData";
 
 interface AddStageDrawerProps {
-  isOpen:        boolean;
-  onClose:       () => void;
-  onSave:        (data: Omit<Stage, "id" | "locked">) => void;
-  editData?:     Stage | null;
-  stageOptions:  StageOption[];
-  statusOptions: StatusOption[];
-  roleOptions:   string[];
+  isOpen:               boolean;
+  onClose:              () => void;
+  onSave:               (data: Omit<Stage, "id" | "locked">) => void;
+  editData?:            Stage | null;
+  stageNames:           string[];
+  roleOptions:          string[];
+  statusActionOptions:  string[];
+  allowedActionOptions: string[];
 }
 
 interface FormState {
@@ -38,7 +36,7 @@ const EMPTY_FORM: FormState = {
   startDate: "", endDate: "", isFinalStage: false,
 };
 
-export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageOptions, statusOptions, roleOptions }: AddStageDrawerProps) => {
+export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageNames, roleOptions, statusActionOptions, allowedActionOptions }: AddStageDrawerProps) => {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
   useEffect(() => {
@@ -255,8 +253,12 @@ export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageOptions
           })}
 
           <div>
-            <label className={labelCls}>{fields.allowedActions.label}</label>
-            <MultiSelect searchable selected={form.allowedActions} onChange={v => setForm(p => ({ ...p, allowedActions: v }))} options={ALLOWED_ACTION_OPTIONS} placeholder={fields.allowedActions.placeholder} />
+            <label className={labelCls}>{fields.statusActions.label}<span className="text-red-500 ml-0.5">*</span></label>
+            <MultiSelect searchable selected={form.statusActions} onChange={v => setForm(p => ({ ...p, statusActions: v }))} options={statusActionOptions} placeholder={fields.statusActions.placeholder} />
+          </div>
+          <div>
+            <label className={labelCls}>{fields.allowedActions.label}<span className="text-red-500 ml-0.5">*</span></label>
+            <MultiSelect searchable selected={form.allowedActions} onChange={v => setForm(p => ({ ...p, allowedActions: v }))} options={allowedActionOptions} placeholder={fields.allowedActions.placeholder} />
           </div>
 
           <div className="flex items-center gap-3">

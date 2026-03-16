@@ -4,21 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/shared/Toggle";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { SingleSelect } from "@/components/ui/single-select";
-import {
-  CREATE_TRIGGER_CONTENT,
-  EMAIL_TEMPLATE_OPTIONS,
-  SEND_TO_OPTIONS,
-  type EmailTrigger,
-} from "./emailTriggersData";
+import { CREATE_TRIGGER_CONTENT, type EmailTrigger } from "./emailTriggersData";
 
 type DrawerMode = "create" | "edit" | "view";
 
 interface CreateEmailTriggerDrawerProps {
-  isOpen:    boolean;
-  mode:      DrawerMode;
-  editData?: EmailTrigger | null;
-  onClose:   () => void;
-  onSave:    (data: Omit<EmailTrigger, "id">) => void;
+  isOpen:               boolean;
+  mode:                 DrawerMode;
+  editData?:            EmailTrigger | null;
+  onClose:              () => void;
+  onSave:               (data: Omit<EmailTrigger, "id">) => void;
+  sendToOptions:        string[];
+  emailTemplateOptions: string[];
 }
 
 interface FormState {
@@ -31,7 +28,7 @@ interface FormState {
 
 const EMPTY_FORM: FormState = { name: "", description: "", emailTemplate: "", sendTo: [], enabled: true };
 
-export const CreateEmailTriggerDrawer = ({ isOpen, mode, editData, onClose, onSave }: CreateEmailTriggerDrawerProps) => {
+export const CreateEmailTriggerDrawer = ({ isOpen, mode, editData, onClose, onSave, sendToOptions, emailTemplateOptions }: CreateEmailTriggerDrawerProps) => {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
   useEffect(() => {
@@ -90,11 +87,11 @@ export const CreateEmailTriggerDrawer = ({ isOpen, mode, editData, onClose, onSa
             </div>
             <div>
               <label className={labelCls}>{fields.emailTemplate.label}{!isView && <span className="text-red-500 ml-0.5">*</span>}</label>
-              <SingleSelect options={EMAIL_TEMPLATE_OPTIONS} value={form.emailTemplate} placeholder={fields.emailTemplate.placeholder} onChange={v => setForm(p => ({ ...p, emailTemplate: v }))} disabled={isView} />
+              <SingleSelect options={emailTemplateOptions} value={form.emailTemplate} placeholder={fields.emailTemplate.placeholder} onChange={v => setForm(p => ({ ...p, emailTemplate: v }))} disabled={isView} />
             </div>
             <div>
               <label className={labelCls}>{fields.sendTo.label}</label>
-              <MultiSelect options={SEND_TO_OPTIONS} selected={form.sendTo} placeholder={fields.sendTo.placeholder} onChange={v => setForm(p => ({ ...p, sendTo: v }))} disabled={isView} />
+              <MultiSelect options={sendToOptions} selected={form.sendTo} placeholder={fields.sendTo.placeholder} onChange={v => setForm(p => ({ ...p, sendTo: v }))} disabled={isView} />
             </div>
             <div className="flex items-center gap-2.5">
               <Toggle checked={form.enabled} onChange={() => !isView && setForm(p => ({ ...p, enabled: !p.enabled }))} />

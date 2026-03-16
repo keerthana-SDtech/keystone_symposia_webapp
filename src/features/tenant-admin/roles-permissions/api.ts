@@ -1,5 +1,5 @@
 import { httpClient } from '@/lib/httpClient';
-import type { Role } from './rolesData';
+import type { Role, PermissionGroup } from './rolesData';
 
 interface ApiRole {
   id: string;
@@ -9,6 +9,31 @@ interface ApiRole {
   isActive: boolean;
   permissionKeys: string[];
   createdAt: string;
+}
+
+interface ApiPermission {
+  id: string;
+  permissionKey: string;
+  resourceId: string;
+  actionId: string;
+  resourceName?: string | null;
+  actionName?: string | null;
+}
+
+function cap(s: string) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function toPermissionGroups(permissions: ApiPermission[]): PermissionGroup[] {
+  const groups = new Map<string, PermissionGroup>();
+  for (const p of permissions) {
+    const key   = p.resourceName ?? p.resourceId;
+    const label = p.resourceName ? cap(p.resourceName) : p.resourceId;
+    if (!groups.has(key)) groups.set(key, { key, label, permissions: [] });
+    const permLabel = [p.actionName, p.resourceName].filter(Boolean).map(cap).join(' ') || p.permissionKey;
+    groups.get(key)!.permissions.push({ id: p.permissionKey, label: permLabel });
+  }
+  return Array.from(groups.values());
 }
 
 function toRole(r: ApiRole): Role {
@@ -49,4 +74,10 @@ export const rolesApi = {
 
   remove: (id: string) =>
     httpClient.delete(`${BASE}/${id}`),
+
+  listPermissionGroups: () =>
+    httpClient.get<ApiPermission[]>('/iam/permissions').then(r => toPermissionGroups(r.data)),
+
+  listRoleNames: () =>
+    httpClient.get<ApiRole[]>(BASE).then(r => r.data.map(a => a.roleName)),
 };

@@ -15,14 +15,6 @@ export const EMAIL_TRIGGERS_TABLE_COLUMNS = [
   { key: "actions",         label: "Actions",          width: "w-[6%]"  },
 ];
 
-export const SEND_TO_OPTIONS = [
-  "Ideator",
-  "Reviewer",
-  "Keystone Staff",
-  "Study Group",
-  "Organizer",
-  "Admin",
-];
 
 export const EMAIL_TEMPLATE_OPTIONS = [
   "Submission Confirmation",
@@ -36,18 +28,6 @@ export const EMAIL_TEMPLATE_OPTIONS = [
   "Welcome Email",
 ];
 
-export const TRIGGER_EVENT_OPTIONS = [
-  "On Submission",
-  "On Status Change",
-  "On Review Assigned",
-  "On Stage Transition",
-  "On Review Window Opening",
-  "On Review Submitted",
-  "On User Invited",
-  "On Password Reset",
-  "On Concept Approved",
-  "On Concept Rejected",
-];
 
 export interface EmailTrigger {
   id:            string;

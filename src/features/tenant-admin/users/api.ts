@@ -8,6 +8,7 @@ interface ApiUser {
   lastName?: string | null;
   isActive: boolean;
   createdAt: string;
+  roles?: { id: string; roleName: string }[];
 }
 
 export interface ApiRole {
@@ -21,7 +22,7 @@ function toUser(u: ApiUser): TenantUser {
     id: u.identityId,
     email: u.email,
     name: [u.firstName, u.lastName].filter(Boolean).join(' ') || u.email,
-    role: '',
+    role: u.roles?.map(r => r.roleName).join(', ') ?? '',
     createdDate: new Date(u.createdAt).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',

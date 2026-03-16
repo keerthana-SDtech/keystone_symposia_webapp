@@ -17,6 +17,23 @@ export interface ApiStage {
   endDate?: string | null;
 }
 
+interface ApiRole {
+  id: string;
+  roleName: string;
+  isActive: boolean;
+}
+
+interface ApiStatus {
+  id: string;
+  name: string;
+  enabled: boolean;
+}
+
+interface ApiAction {
+  id: string;
+  actionName: string;
+}
+
 const BASE = '/config/stages';
 
 export const workflowApi = {
@@ -37,4 +54,13 @@ export const workflowApi = {
 
   reorder: (ids: string[]) =>
     httpClient.patch(`${BASE}/reorder`, { ids }),
+
+  listRoleNames: () =>
+    httpClient.get<ApiRole[]>('/iam/roles').then(r => r.data.map(a => a.roleName)),
+
+  listStatusActionOptions: () =>
+    httpClient.get<ApiStatus[]>('/config/statuses').then(r => r.data.map(s => s.name)),
+
+  listAllowedActionOptions: () =>
+    httpClient.get<ApiAction[]>('/iam/actions').then(r => r.data.map(a => a.actionName)),
 };

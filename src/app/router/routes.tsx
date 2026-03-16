@@ -16,6 +16,8 @@ import RolesPermissionsPage from '../../pages/tenant-admin/RolesPermissionsPage'
 import WorkflowStagesPage from '../../pages/tenant-admin/WorkflowStagesPage'
 import StatusManagementPage from '../../pages/tenant-admin/StatusManagementPage'
 import EmailTriggersPage from '../../pages/tenant-admin/EmailTriggersPage'
+import FormBuilderPage from '../../pages/tenant-admin/FormBuilderPage'
+import CreateFormBuilderPage from '../../pages/tenant-admin/CreateFormBuilderPage'
 import AuditLogsPage from '../../pages/tenant-admin/AuditLogsPage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { GuestRoute } from './GuestRoute'
@@ -48,6 +50,8 @@ export const appRoutes: RouteObject[] = [
   { path: '/tenant-admin/workflow-stages',   element: <ProtectedRoute allowedRoles={['tenant_admin']}><WorkflowStagesPage /></ProtectedRoute> },
   { path: '/tenant-admin/status-management', element: <ProtectedRoute allowedRoles={['tenant_admin']}><StatusManagementPage /></ProtectedRoute> },
   { path: '/tenant-admin/email-triggers',    element: <ProtectedRoute allowedRoles={['tenant_admin']}><EmailTriggersPage /></ProtectedRoute> },
+  { path: '/tenant-admin/form-builder',             element: <ProtectedRoute allowedRoles={['tenant_admin']}><FormBuilderPage /></ProtectedRoute> },
+  { path: '/tenant-admin/form-builder/create/:type', element: <ProtectedRoute allowedRoles={['tenant_admin']}><CreateFormBuilderPage /></ProtectedRoute> },
   { path: '/tenant-admin/audit-logs',        element: <ProtectedRoute allowedRoles={['tenant_admin']}><AuditLogsPage /></ProtectedRoute> },
 
   // ── Catch-all ─────────────────────────────────────────────────────────────

@@ -3,16 +3,16 @@ import { X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   CREATE_ROLE_CONTENT,
-  PERMISSION_GROUPS,
-  TOTAL_PERMISSIONS,
   type Role,
+  type PermissionGroup,
 } from "./rolesData";
 
 interface CreateRoleDrawerProps {
-  isOpen:    boolean;
-  onClose:   () => void;
-  onSave:    (role: Omit<Role, "id">) => void;
-  editData?: Role | null;
+  isOpen:           boolean;
+  onClose:          () => void;
+  onSave:           (role: Omit<Role, "id">) => void;
+  editData?:        Role | null;
+  permissionGroups: PermissionGroup[];
 }
 
 interface FormState {
@@ -24,7 +24,7 @@ interface FormState {
 const EMPTY_FORM: FormState = { name: "", description: "", permissionIds: [] };
 
 interface GroupSelectorProps {
-  group:    typeof PERMISSION_GROUPS[number];
+  group:    PermissionGroup;
   selected: string[];
   onChange: (ids: string[]) => void;
 }
@@ -77,7 +77,7 @@ const GroupSelector = ({ group, selected, onChange }: GroupSelectorProps) => {
   );
 };
 
-export const CreateRoleDrawer = ({ isOpen, onClose, onSave, editData }: CreateRoleDrawerProps) => {
+export const CreateRoleDrawer = ({ isOpen, onClose, onSave, editData, permissionGroups }: CreateRoleDrawerProps) => {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
   useEffect(() => {
@@ -104,6 +104,7 @@ export const CreateRoleDrawer = ({ isOpen, onClose, onSave, editData }: CreateRo
 
   const { createTitle, editTitle, fields, cancel, create, save } = CREATE_ROLE_CONTENT;
   const isEdit = Boolean(editData);
+  const totalPermissions = permissionGroups.reduce((sum, g) => sum + g.permissions.length, 0);
   const grantedCount = form.permissionIds.length;
 
   if (!isOpen) return null;
@@ -132,13 +133,17 @@ export const CreateRoleDrawer = ({ isOpen, onClose, onSave, editData }: CreateRo
           <div>
             <div className="flex items-center justify-between mb-4">
               <span className="text-[14px] font-semibold text-gray-800">{CREATE_ROLE_CONTENT.permissionsLabel}</span>
-              <span className="text-[12px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{grantedCount}/{TOTAL_PERMISSIONS} granted</span>
+              <span className="text-[12px] text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{grantedCount}/{totalPermissions} granted</span>
             </div>
-            <div className="flex flex-col gap-5">
-              {PERMISSION_GROUPS.map(group => (
-                <GroupSelector key={group.key} group={group} selected={form.permissionIds} onChange={ids => setForm(prev => ({ ...prev, permissionIds: ids }))} />
-              ))}
-            </div>
+            {permissionGroups.length === 0 ? (
+              <p className="text-[13px] text-gray-400">No permissions available.</p>
+            ) : (
+              <div className="flex flex-col gap-5">
+                {permissionGroups.map(group => (
+                  <GroupSelector key={group.key} group={group} selected={form.permissionIds} onChange={ids => setForm(prev => ({ ...prev, permissionIds: ids }))} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
