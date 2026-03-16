@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/shared/Toggle";
-import { MODULE_OPTIONS, type FormBuilderTab } from "./formBuilderData";
+import { MODULE_OPTIONS, type FormBuilderItem, type FormBuilderTab } from "./formBuilderData";
 
 // ── constants ──────────────────────────────────────────────────────────────
 
@@ -547,22 +547,29 @@ const SectionCard = ({ section, onTitleChange, onToggle, onRemove, onFieldChange
 
 // ── main view ──────────────────────────────────────────────────────────────
 
-export const CreateFormBuilderView = ({ formType }: { formType: FormBuilderTab }) => {
+export const CreateFormBuilderView = ({
+  formType,
+  editData,
+}: {
+  formType: FormBuilderTab;
+  editData?: FormBuilderItem;
+}) => {
   const navigate = useNavigate();
-  const isApp = formType === "application";
+  const isApp  = formType === "application";
+  const isEdit = !!editData;
 
   const [basicOpen,   setBasicOpen]   = useState(true);
-  const [formName,    setFormName]    = useState("");
+  const [formName,    setFormName]    = useState(editData?.name        ?? "");
   const [items,       setItems]       = useState<FormItem[]>([]);
   const [addOpen,     setAddOpen]     = useState(false);
   const addRef = useRef<HTMLDivElement>(null);
 
-  const [description, setDescription] = useState("");
-  const [module,      setModule]      = useState("");
+  const [description, setDescription] = useState(editData?.description ?? "");
+  const [module,      setModule]      = useState(editData?.module      ?? "");
   const [entityType,  setEntityType]  = useState("");
   const [version,     setVersion]     = useState("1");
   const [stage,       setStage]       = useState("");
-  const [enabled,     setEnabled]     = useState(true);
+  const [enabled,     setEnabled]     = useState(editData?.enabled     ?? true);
 
   useEffect(() => {
     if (!addOpen) return;
@@ -607,7 +614,9 @@ export const CreateFormBuilderView = ({ formType }: { formType: FormBuilderTab }
   const handleSectionFieldAdd = useCallback((sid: string) =>
     setItems(prev => prev.map(it => it.kind === "section" && it.id === sid ? { ...it, fields: [...it.fields, makeField()] } : it)), []);
 
-  const title = isApp ? "Create Application Form" : "Create Admin Form";
+  const title = isEdit
+    ? (isApp ? "Edit Application Form" : "Edit Admin Form")
+    : (isApp ? "Create Application Form" : "Create Admin Form");
 
   return (
     <div className="w-full flex flex-col min-h-[calc(100vh-64px)]">

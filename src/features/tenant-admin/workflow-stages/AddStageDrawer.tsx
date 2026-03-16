@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MultiSelect } from "@/components/ui/multi-select";
 import { SingleSelect } from "@/components/ui/single-select";
-import { ADD_STAGE_CONTENT, type Stage } from "./workflowData";
+import { ADD_STAGE_CONTENT, type Stage, type StatusActionItem } from "./workflowData";
 
 interface AddStageDrawerProps {
   isOpen:               boolean;
@@ -69,6 +69,10 @@ export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageNames, 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
+
+  // Derive option objects from props (id = index-based string, name = prop value)
+  const statusOptions = statusActionOptions.map((name, i) => ({ id: String(i), name }));
+  const stageOptions  = stageNames.map((name, i) => ({ id: String(i), name }));
 
   // Selected status names driving the action list
   const selectedStatusNames = form.statusActions.map(a => {
@@ -252,10 +256,6 @@ export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageNames, 
             );
           })}
 
-          <div>
-            <label className={labelCls}>{fields.statusActions.label}<span className="text-red-500 ml-0.5">*</span></label>
-            <MultiSelect searchable selected={form.statusActions} onChange={v => setForm(p => ({ ...p, statusActions: v }))} options={statusActionOptions} placeholder={fields.statusActions.placeholder} />
-          </div>
           <div>
             <label className={labelCls}>{fields.allowedActions.label}<span className="text-red-500 ml-0.5">*</span></label>
             <MultiSelect searchable selected={form.allowedActions} onChange={v => setForm(p => ({ ...p, allowedActions: v }))} options={allowedActionOptions} placeholder={fields.allowedActions.placeholder} />
