@@ -117,6 +117,10 @@ class HttpClient {
         return this.instance.post<T>(url, data, config);
     }
 
+    put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) {
+        return this.instance.put<T>(url, data, config);
+    }
+
     patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig) {
         return this.instance.patch<T>(url, data, config);
     }

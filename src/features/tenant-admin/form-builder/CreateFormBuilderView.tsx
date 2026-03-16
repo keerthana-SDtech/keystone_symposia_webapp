@@ -1,3 +1,19 @@
+/**
+ * CreateFormBuilderView.tsx
+ *
+ * API integration points (no UI changes):
+ *   • `initialItems` prop   — seeds the items list when editing an existing form
+ *                             (populated by EditFormBuilderPage via API fetch).
+ *   • `handleSave`          — replaced with an async function that calls either
+ *                             formBuilderApi.saveNewForm (create) or
+ *                             formBuilderApi.saveEditForm (edit).
+ *   • `isSaving` state      — disables the Save button during the API call.
+ *   • Toast                 — shows success / error feedback after save.
+ *
+ * FormItem / FieldItem / SectionItem types are now imported from formBuilderData
+ * (shared with the API mapper) instead of being locally defined here.
+ */
+
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -6,7 +22,20 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/shared/Toggle";
-import { MODULE_OPTIONS, type FormBuilderItem, type FormBuilderTab } from "./formBuilderData";
+import { Toast } from "@/components/ui/toast";
+import {
+  MODULE_OPTIONS,
+  type FormBuilderItem,
+  type FormBuilderTab,
+  // UI-level form-item types (moved to formBuilderData for shared use)
+  type FormItem,
+  type FieldItem,
+  type SectionItem,
+  type FieldOption,
+  type ParaValidationRow,
+  type CheckboxValRow,
+} from "./formBuilderData";
+import { formBuilderApi } from "./formBuilderApi";
 
 // ── constants ──────────────────────────────────────────────────────────────
 
@@ -30,47 +59,7 @@ const smLabelCls  = "text-[13px] font-medium text-gray-700 mb-1.5 block";
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
-// ── types ──────────────────────────────────────────────────────────────────
-
-interface ParaValidationRow   { id: string; type: string; minValue: string; maxValue: string; }
-interface CheckboxValRow      { id: string; type: string; number: string; customError: string; }
-
-interface FieldOption { text: string; goTo: string; }
-
-interface FieldItem {
-  kind:              "field";
-  id:                string;
-  title:             string;
-  type:              string;
-  options:           FieldOption[];
-  showGoToField:     boolean;
-  required:          boolean;
-  fieldAssociation:  boolean;
-  associatedField:   string;
-  // validation (Text Field / Text Area / File Upload)
-  showValidation:    boolean;
-  validationMessage: string;
-  // Paragraph validation rows
-  paraValidations:   ParaValidationRow[];
-  // Checkbox / Multi-select validation rows
-  cbValidations:     CheckboxValRow[];
-  // Look Up
-  lookupName:        string;
-  lookupUrlTemplate: string;
-  lookupResultPath:  string;
-  lookupLabelPath:   string;
-  lookupValuePath:   string;
-}
-
-interface SectionItem {
-  kind:      "section";
-  id:        string;
-  title:     string;
-  collapsed: boolean;
-  fields:    FieldItem[];
-}
-
-type FormItem = FieldItem | SectionItem;
+// ── factory helpers ────────────────────────────────────────────────────────
 
 const makeField = (): FieldItem => ({
   kind: "field", id: uid(),
@@ -550,9 +539,12 @@ const SectionCard = ({ section, onTitleChange, onToggle, onRemove, onFieldChange
 export const CreateFormBuilderView = ({
   formType,
   editData,
+  initialItems,
 }: {
-  formType: FormBuilderTab;
-  editData?: FormBuilderItem;
+  formType:      FormBuilderTab;
+  editData?:     FormBuilderItem;
+  /** Pre-populated form items when editing an existing form (loaded from API). */
+  initialItems?: FormItem[];
 }) => {
   const navigate = useNavigate();
   const isApp  = formType === "application";
@@ -560,7 +552,7 @@ export const CreateFormBuilderView = ({
 
   const [basicOpen,   setBasicOpen]   = useState(true);
   const [formName,    setFormName]    = useState(editData?.name        ?? "");
-  const [items,       setItems]       = useState<FormItem[]>([]);
+  const [items,       setItems]       = useState<FormItem[]>(() => initialItems ?? []);
   const [addOpen,     setAddOpen]     = useState(false);
   const addRef = useRef<HTMLDivElement>(null);
 
@@ -571,6 +563,17 @@ export const CreateFormBuilderView = ({
   const [stage,       setStage]       = useState("");
   const [enabled,     setEnabled]     = useState(editData?.enabled     ?? true);
 
+  // API save state
+  const [isSaving,  setIsSaving]  = useState(false);
+  const [saveToast, setSaveToast] = useState<{ visible: boolean; message: string; error?: boolean }>({
+    visible: false, message: "",
+  });
+
+  const showSaveToast = (message: string, error = false) => {
+    setSaveToast({ visible: true, message, error });
+    setTimeout(() => setSaveToast({ visible: false, message: "" }), 4000);
+  };
+
   useEffect(() => {
     if (!addOpen) return;
     const h = (e: MouseEvent) => { if (!addRef.current?.contains(e.target as Node)) setAddOpen(false); };
@@ -579,7 +582,34 @@ export const CreateFormBuilderView = ({
   }, [addOpen]);
 
   const isValid = isApp ? !!formName && !!entityType && !!stage : !!formName && !!module;
-  const handleSave = () => { if (!isValid) return; navigate("/tenant-admin/form-builder"); };
+
+  /**
+   * Save handler — calls the appropriate API compound function, then
+   * navigates back to the list on success.
+   *
+   * For create: POST form-definition → POST sections → POST fields → POST options
+   * For edit:   GET current form → PUT metadata + DELETE sections (parallel) → re-create
+   */
+  const handleSave = async () => {
+    if (!isValid || isSaving) return;
+    setIsSaving(true);
+
+    const details = { formName, description, module, enabled };
+
+    try {
+      if (isEdit && editData?.id) {
+        await formBuilderApi.saveEditForm(editData.id, details, items);
+      } else {
+        await formBuilderApi.saveNewForm(details, items, formType);
+      }
+      navigate("/tenant-admin/form-builder");
+    } catch (err) {
+      console.error("[FormBuilder] Save failed:", err);
+      showSaveToast("Failed to save form. Please try again.", true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleAdd = (type: string) => { setAddOpen(false); setItems(prev => [...prev, type === "Section" ? makeSection() : makeField()]); };
 
@@ -631,7 +661,7 @@ export const CreateFormBuilderView = ({
           </div>
           <p className="text-[13px] text-gray-500 ml-7">Provide review about the proposed concept. All fields marked with * are required.</p>
         </div>
-        <Button onClick={handleSave} disabled={!isValid} className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 text-[14px] font-medium disabled:opacity-50">Save</Button>
+        <Button onClick={handleSave} disabled={!isValid || isSaving} className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 text-[14px] font-medium disabled:opacity-50">Save</Button>
       </div>
 
       {/* Content */}
@@ -705,8 +735,16 @@ export const CreateFormBuilderView = ({
       {/* Bottom bar */}
       <div className="fixed bottom-0 right-0 left-[260px] bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-end gap-3 z-30">
         <Button variant="outline" onClick={() => navigate("/tenant-admin/form-builder")} className="px-6 py-2.5 text-[14px] border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</Button>
-        <Button onClick={handleSave} disabled={!isValid} className="px-6 py-2.5 text-[14px] bg-primary hover:bg-primary/90 text-white disabled:opacity-50">Save</Button>
+        <Button onClick={handleSave} disabled={!isValid || isSaving} className="px-6 py-2.5 text-[14px] bg-primary hover:bg-primary/90 text-white disabled:opacity-50">Save</Button>
       </div>
+
+      {/* Save feedback toast (fixed overlay — no layout impact) */}
+      <Toast
+        message={saveToast.message}
+        variant={saveToast.error ? "error" : "success"}
+        visible={saveToast.visible}
+        onClose={() => setSaveToast(prev => ({ ...prev, visible: false }))}
+      />
     </div>
   );
 };

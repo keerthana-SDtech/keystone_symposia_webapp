@@ -30,7 +30,7 @@ interface FormState {
   enabled:     boolean;
 }
 
-const EMPTY_FORM: FormState = { name: "", description: "", module: "", type: "admin", enabled: true };
+const EMPTY_FORM: FormState = { name: "", description: "", module: "", type: "application", enabled: true };
 
 export const CreateFormDrawer = ({ isOpen, mode, editData, initialType, onClose, onSave }: CreateFormDrawerProps) => {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -39,7 +39,7 @@ export const CreateFormDrawer = ({ isOpen, mode, editData, initialType, onClose,
     if (isOpen) {
       setForm(editData
         ? { name: editData.name, description: editData.description, module: editData.module, type: editData.type, enabled: editData.enabled }
-        : { ...EMPTY_FORM, type: initialType ?? "admin" }
+        : { ...EMPTY_FORM, type: initialType ?? "application" }
       );
     }
   }, [isOpen, editData, initialType]);

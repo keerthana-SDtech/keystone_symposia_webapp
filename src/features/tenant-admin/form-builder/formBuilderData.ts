@@ -7,7 +7,6 @@ export const FORM_BUILDER_PAGE_CONTENT = {
 };
 
 export const FORM_BUILDER_TABS = [
-  { key: "admin",       label: "Admin"       },
   { key: "application", label: "Application" },
 ] as const;
 
@@ -57,6 +56,47 @@ export const MOCK_FORM_BUILDER_ITEMS: FormBuilderItem[] = [
   { id: "11", name: "profile update",           description: "Form for updating user profile",              module: "User",              enabled: true,  type: "application" },
   { id: "12", name: "concept edit",             description: "Form for editing an existing concept",        module: "Concept",           enabled: false, type: "application" },
 ];
+
+// ─── UI-level form-field types ────────────────────────────────────────────────
+// Exported here so both CreateFormBuilderView and the API mapper can import
+// them from a single location without creating a circular dependency.
+
+export interface FieldOption       { text: string; goTo: string; }
+export interface ParaValidationRow { id: string; type: string; minValue: string; maxValue: string; }
+export interface CheckboxValRow    { id: string; type: string; number: string; customError: string; }
+
+export interface FieldItem {
+  kind:              "field";
+  id:                string;
+  title:             string;
+  type:              string;
+  options:           FieldOption[];
+  showGoToField:     boolean;
+  required:          boolean;
+  fieldAssociation:  boolean;
+  associatedField:   string;
+  showValidation:    boolean;
+  validationMessage: string;
+  paraValidations:   ParaValidationRow[];
+  cbValidations:     CheckboxValRow[];
+  lookupName:        string;
+  lookupUrlTemplate: string;
+  lookupResultPath:  string;
+  lookupLabelPath:   string;
+  lookupValuePath:   string;
+}
+
+export interface SectionItem {
+  kind:      "section";
+  id:        string;
+  title:     string;
+  collapsed: boolean;
+  fields:    FieldItem[];
+}
+
+export type FormItem = FieldItem | SectionItem;
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export const CREATE_FORM_CONTENT = {
   createTitle: "Create Form",
