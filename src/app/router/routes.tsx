@@ -16,6 +16,7 @@ import RolesPermissionsPage from '../../pages/tenant-admin/RolesPermissionsPage'
 import WorkflowStagesPage from '../../pages/tenant-admin/WorkflowStagesPage'
 import StatusManagementPage from '../../pages/tenant-admin/StatusManagementPage'
 import EmailTriggersPage from '../../pages/tenant-admin/EmailTriggersPage'
+import EmailTemplatesPage from '../../pages/tenant-admin/EmailTemplatesPage'
 import AuditLogsPage from '../../pages/tenant-admin/AuditLogsPage'
 import { ProtectedRoute } from './ProtectedRoute'
 import { GuestRoute } from './GuestRoute'
@@ -47,6 +48,7 @@ export const appRoutes: RouteObject[] = [
   { path: '/tenant-admin/roles-permissions', element: <ProtectedRoute allowedRoles={['tenant_admin']}><RolesPermissionsPage /></ProtectedRoute> },
   { path: '/tenant-admin/workflow-stages',   element: <ProtectedRoute allowedRoles={['tenant_admin']}><WorkflowStagesPage /></ProtectedRoute> },
   { path: '/tenant-admin/status-management', element: <ProtectedRoute allowedRoles={['tenant_admin']}><StatusManagementPage /></ProtectedRoute> },
+  { path: '/tenant-admin/email-templates',   element: <ProtectedRoute allowedRoles={['tenant_admin']}><EmailTemplatesPage /></ProtectedRoute> },
   { path: '/tenant-admin/email-triggers',    element: <ProtectedRoute allowedRoles={['tenant_admin']}><EmailTriggersPage /></ProtectedRoute> },
   { path: '/tenant-admin/audit-logs',        element: <ProtectedRoute allowedRoles={['tenant_admin']}><AuditLogsPage /></ProtectedRoute> },
 

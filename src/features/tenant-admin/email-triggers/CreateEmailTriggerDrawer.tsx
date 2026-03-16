@@ -6,12 +6,19 @@ import { MultiSelect } from "@/components/ui/multi-select";
 import { SingleSelect } from "@/components/ui/single-select";
 import {
   CREATE_TRIGGER_CONTENT,
-  EMAIL_TEMPLATE_OPTIONS,
+  ACTION_OPTIONS,
   SEND_TO_OPTIONS,
   type EmailTrigger,
 } from "./emailTriggersData";
+import { httpClient } from "@/lib/httpClient";
 
 type DrawerMode = "create" | "edit" | "view";
+
+interface TemplateOption {
+  id:      string;
+  subject: string;
+  eventKey: string;
+}
 
 interface CreateEmailTriggerDrawerProps {
   isOpen:    boolean;
@@ -22,22 +29,48 @@ interface CreateEmailTriggerDrawerProps {
 }
 
 interface FormState {
-  name:          string;
-  description:   string;
-  emailTemplate: string;
-  sendTo:        string[];
-  enabled:       boolean;
+  name:            string;
+  description:     string;
+  emailTemplateId: string;
+  emailTemplate:   string;   // display label
+  sendTo:          string[];
+  fromStage:       string;
+  toStage:         string;
+  action:          string;
+  enabled:         boolean;
 }
 
-const EMPTY_FORM: FormState = { name: "", description: "", emailTemplate: "", sendTo: [], enabled: true };
+const EMPTY_FORM: FormState = {
+  name: "", description: "", emailTemplateId: "", emailTemplate: "",
+  sendTo: [], fromStage: "", toStage: "", action: "", enabled: true,
+};
 
 export const CreateEmailTriggerDrawer = ({ isOpen, mode, editData, onClose, onSave }: CreateEmailTriggerDrawerProps) => {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [templateOptions, setTemplateOptions] = useState<TemplateOption[]>([]);
+
+  // Load email templates for the dropdown
+  useEffect(() => {
+    if (!isOpen) return;
+    httpClient.get<Array<{ id: string; subject: string; eventKey: string }>>('/config/notification-templates')
+      .then(r => setTemplateOptions(r.data))
+      .catch(() => {});
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen) {
       setForm(editData
-        ? { name: editData.name, description: editData.description, emailTemplate: editData.emailTemplate, sendTo: editData.sendTo, enabled: editData.enabled }
+        ? {
+            name:            editData.name,
+            description:     editData.description,
+            emailTemplateId: editData.emailTemplateId ?? "",
+            emailTemplate:   editData.emailTemplate,
+            sendTo:          editData.sendTo,
+            fromStage:       editData.fromStage,
+            toStage:         editData.toStage,
+            action:          editData.action,
+            enabled:         editData.enabled,
+          }
         : EMPTY_FORM
       );
     }
@@ -50,9 +83,28 @@ export const CreateEmailTriggerDrawer = ({ isOpen, mode, editData, onClose, onSa
     return () => document.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
 
+  const handleTemplateSelect = (label: string) => {
+    const found = templateOptions.find(t => t.subject === label || t.eventKey === label);
+    setForm(p => ({
+      ...p,
+      emailTemplate:   label,
+      emailTemplateId: found?.id ?? "",
+    }));
+  };
+
   const handleSave = () => {
-    if (!form.name || !form.emailTemplate) return;
-    onSave({ name: form.name, description: form.description, emailTemplate: form.emailTemplate, sendTo: form.sendTo, enabled: form.enabled });
+    if (!form.name || !form.emailTemplateId) return;
+    onSave({
+      name:            form.name,
+      description:     form.description,
+      emailTemplate:   form.emailTemplate,
+      emailTemplateId: form.emailTemplateId,
+      sendTo:          form.sendTo,
+      fromStage:       form.fromStage,
+      toStage:         form.toStage,
+      action:          form.action,
+      enabled:         form.enabled,
+    });
     onClose();
   };
 
@@ -60,6 +112,8 @@ export const CreateEmailTriggerDrawer = ({ isOpen, mode, editData, onClose, onSa
   const isEdit  = mode === "edit";
   const { createTitle, editTitle, viewTitle, fields, cancel, add, save } = CREATE_TRIGGER_CONTENT;
   const drawerTitle = isView ? viewTitle : isEdit ? editTitle : createTitle;
+
+  const templateLabels = templateOptions.map(t => t.subject || t.eventKey);
 
   const inputCls    = `w-full px-3 py-2.5 border border-gray-200 rounded-md text-[13px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-gray-400 ${isView ? "bg-gray-50 cursor-default" : "bg-white"}`;
   const textareaCls = `w-full px-3 py-2.5 border border-gray-200 rounded-md text-[13px] text-gray-800 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-gray-400 resize-none ${isView ? "bg-gray-50 cursor-default" : "bg-white"}`;
@@ -90,11 +144,35 @@ export const CreateEmailTriggerDrawer = ({ isOpen, mode, editData, onClose, onSa
             </div>
             <div>
               <label className={labelCls}>{fields.emailTemplate.label}{!isView && <span className="text-red-500 ml-0.5">*</span>}</label>
-              <SingleSelect options={EMAIL_TEMPLATE_OPTIONS} value={form.emailTemplate} placeholder={fields.emailTemplate.placeholder} onChange={v => setForm(p => ({ ...p, emailTemplate: v }))} disabled={isView} />
+              <SingleSelect
+                options={templateLabels}
+                value={form.emailTemplate}
+                placeholder={fields.emailTemplate.placeholder}
+                onChange={handleTemplateSelect}
+                disabled={isView}
+              />
             </div>
             <div>
               <label className={labelCls}>{fields.sendTo.label}</label>
               <MultiSelect options={SEND_TO_OPTIONS} selected={form.sendTo} placeholder={fields.sendTo.placeholder} onChange={v => setForm(p => ({ ...p, sendTo: v }))} disabled={isView} />
+            </div>
+            <div>
+              <label className={labelCls}>{fields.fromStage.label}</label>
+              <input type="text" value={form.fromStage} onChange={e => !isView && setForm(p => ({ ...p, fromStage: e.target.value }))} placeholder={fields.fromStage.placeholder} readOnly={isView} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>{fields.toStage.label}</label>
+              <input type="text" value={form.toStage} onChange={e => !isView && setForm(p => ({ ...p, toStage: e.target.value }))} placeholder={fields.toStage.placeholder} readOnly={isView} className={inputCls} />
+            </div>
+            <div>
+              <label className={labelCls}>{fields.action.label}</label>
+              <SingleSelect
+                options={ACTION_OPTIONS}
+                value={form.action}
+                placeholder={fields.action.placeholder}
+                onChange={v => setForm(p => ({ ...p, action: v }))}
+                disabled={isView}
+              />
             </div>
             <div className="flex items-center gap-2.5">
               <Toggle checked={form.enabled} onChange={() => !isView && setForm(p => ({ ...p, enabled: !p.enabled }))} />
@@ -106,7 +184,7 @@ export const CreateEmailTriggerDrawer = ({ isOpen, mode, editData, onClose, onSa
         {!isView && (
           <div className="flex items-center justify-end gap-3 px-5 py-4 border-t border-gray-100">
             <Button variant="outline" onClick={onClose} className="px-4 py-2 text-[13px] border-gray-300 text-gray-700 hover:bg-gray-50">{cancel}</Button>
-            <Button onClick={handleSave} disabled={!form.name || !form.emailTemplate} className="px-4 py-2 text-[13px] bg-primary hover:bg-primary/90 text-white disabled:opacity-50">{isEdit ? save : add}</Button>
+            <Button onClick={handleSave} disabled={!form.name || !form.emailTemplateId} className="px-4 py-2 text-[13px] bg-primary hover:bg-primary/90 text-white disabled:opacity-50">{isEdit ? save : add}</Button>
           </div>
         )}
       </div>

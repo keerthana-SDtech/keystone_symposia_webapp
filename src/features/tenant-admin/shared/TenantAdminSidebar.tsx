@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Users, ShieldCheck, Network, Shield,
-  Zap, ClipboardList,
+  Zap, ClipboardList, Mail,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -9,7 +9,7 @@ import { TENANT_ADMIN_NAV_ITEMS } from "./tenantAdminNavData";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Users, ShieldCheck, Network, Shield,
-  Zap, ClipboardList,
+  Zap, ClipboardList, Mail,
 };
 
 export const TenantAdminSidebar = () => {

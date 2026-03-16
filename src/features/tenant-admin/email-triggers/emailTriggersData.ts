@@ -8,10 +8,10 @@ export const EMAIL_TRIGGERS_PAGE_CONTENT = {
 
 export const EMAIL_TRIGGERS_TABLE_COLUMNS = [
   { key: "name",            label: "Name",             width: "w-[18%]" },
-  { key: "description",     label: "Description",      width: "w-[22%]" },
-  { key: "emailTemplate",   label: "Email Template",   width: "w-[18%]" },
-  { key: "sendTo",          label: "Send to",          width: "w-[16%]" },
-  { key: "enabled",         label: "Enable/Disable",   width: "w-[12%]" },
+  { key: "description",     label: "Description",      width: "w-[20%]" },
+  { key: "emailTemplate",   label: "Email Template",   width: "w-[16%]" },
+  { key: "sendTo",          label: "Send to",          width: "w-[14%]" },
+  { key: "enabled",         label: "Enable/Disable",   width: "w-[10%]" },
   { key: "actions",         label: "Actions",          width: "w-[6%]"  },
 ];
 
@@ -24,19 +24,7 @@ export const SEND_TO_OPTIONS = [
   "Admin",
 ];
 
-export const EMAIL_TEMPLATE_OPTIONS = [
-  "Submission Confirmation",
-  "Status Change Notification",
-  "Review Assignment",
-  "Stage Transition Notice",
-  "Review Window Opening",
-  "Review Submitted Notification",
-  "User Invitation",
-  "Password Reset",
-  "Welcome Email",
-];
-
-export const TRIGGER_EVENT_OPTIONS = [
+export const ACTION_OPTIONS = [
   "On Submission",
   "On Status Change",
   "On Review Assigned",
@@ -50,27 +38,33 @@ export const TRIGGER_EVENT_OPTIONS = [
 ];
 
 export interface EmailTrigger {
-  id:            string;
-  name:          string;
-  description:   string;
-  emailTemplate: string;
-  sendTo:        string[];
-  enabled:       boolean;
+  id:             string;
+  name:           string;
+  description:    string;
+  emailTemplate:  string;   // subject of linked template (display only)
+  emailTemplateId?: string | null;
+  sendTo:         string[];
+  fromStage:      string;
+  toStage:        string;
+  action:         string;
+  enabled:        boolean;
 }
 
-
 export const CREATE_TRIGGER_CONTENT = {
-  createTitle: "Create Email Trigger",
+  createTitle: "Create Trigger",
   editTitle:   "Edit Email Trigger",
   viewTitle:   "View Email Trigger",
   fields: {
-    name:          { label: "Trigger Name",    placeholder: "Enter trigger name",    required: true  },
-    description:   { label: "Description",     placeholder: "Enter description",     required: false },
-    emailTemplate: { label: "Email Template",  placeholder: "Select email template", required: true  },
-    sendTo:        { label: "Send To",         placeholder: "Select recipients"                      },
-    enabled:       { label: "Enable Trigger"                                                         },
+    name:          { label: "Name",             placeholder: "Enter name",            required: true  },
+    description:   { label: "Description",      placeholder: "Enter description",     required: false },
+    emailTemplate: { label: "Email Template",   placeholder: "Select email template", required: true  },
+    sendTo:        { label: "Send To",          placeholder: "Select send to"                        },
+    fromStage:     { label: "From Stage",       placeholder: "Select from stage"                     },
+    toStage:       { label: "To Stage",         placeholder: "Select to stage"                       },
+    action:        { label: "Action",           placeholder: "Select action"                         },
+    enabled:       { label: "Enable email trigger"                                                    },
   },
   cancel: "Cancel",
-  add:    "Add",
+  add:    "Create",
   save:   "Save",
 };

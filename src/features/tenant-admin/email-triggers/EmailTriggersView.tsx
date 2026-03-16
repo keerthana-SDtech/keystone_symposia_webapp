@@ -5,11 +5,13 @@ import { DeleteConfirmModal } from "@/components/shared/DeleteConfirmModal";
 import { Toast } from "@/components/ui/toast";
 import { type EmailTrigger } from "./emailTriggersData";
 import { emailTriggersApi } from "./api";
+import { httpClient } from "@/lib/httpClient";
 
 type DrawerMode = "create" | "edit" | "view";
 
 export const EmailTriggersView = () => {
   const [triggers,    setTriggers]   = useState<EmailTrigger[]>([]);
+  const [templateMap, setTemplateMap] = useState<Record<string, string>>({});
   const [search,      setSearch]     = useState("");
   const [drawerOpen,  setDrawerOpen] = useState(false);
   const [drawerMode,  setDrawerMode] = useState<DrawerMode>("create");
@@ -23,18 +25,33 @@ export const EmailTriggersView = () => {
   };
 
   useEffect(() => {
+    // Load templates for display name resolution
+    httpClient.get<Array<{ id: string; subject: string; eventKey: string }>>('/config/notification-templates')
+      .then(r => {
+        const map: Record<string, string> = {};
+        r.data.forEach(t => { map[t.id] = t.subject || t.eventKey; });
+        setTemplateMap(map);
+      })
+      .catch(() => {});
+
     emailTriggersApi.list()
       .then(data => setTriggers(data))
       .catch(() => showToast("Failed to load email triggers"));
   }, []);
 
+  // Resolve emailTemplate display name from templateMap
+  const resolved = triggers.map(t => ({
+    ...t,
+    emailTemplate: t.emailTemplateId ? (templateMap[t.emailTemplateId] ?? t.emailTemplate) : t.emailTemplate,
+  }));
+
   const filtered = search.trim()
-    ? triggers.filter(t =>
+    ? resolved.filter(t =>
         t.name.toLowerCase().includes(search.toLowerCase()) ||
         t.description.toLowerCase().includes(search.toLowerCase()) ||
         t.emailTemplate.toLowerCase().includes(search.toLowerCase())
       )
-    : triggers;
+    : resolved;
 
   const handleCreate = async (data: Omit<EmailTrigger, "id">) => {
     try {
@@ -64,8 +81,8 @@ export const EmailTriggersView = () => {
   };
 
   const openCreate = () => { setEditTrigger(null); setDrawerMode("create"); setDrawerOpen(true); };
-  const openEdit   = (id: string) => { setEditTrigger(triggers.find(t => t.id === id) ?? null); setDrawerMode("edit"); setDrawerOpen(true); };
-  const openView   = (id: string) => { setEditTrigger(triggers.find(t => t.id === id) ?? null); setDrawerMode("view"); setDrawerOpen(true); };
+  const openEdit   = (id: string) => { setEditTrigger(resolved.find(t => t.id === id) ?? null); setDrawerMode("edit"); setDrawerOpen(true); };
+  const openView   = (id: string) => { setEditTrigger(resolved.find(t => t.id === id) ?? null); setDrawerMode("view"); setDrawerOpen(true); };
   const closeDrawer = () => { setDrawerOpen(false); setEditTrigger(null); };
 
   return (
