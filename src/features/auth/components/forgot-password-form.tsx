@@ -11,7 +11,7 @@ const OTP_LENGTH = 6;
 type Step = "email" | "otp" | "reset";
 
 export const ForgotPasswordForm = () => {
-    const { name, logo, logoDark, logoWidth, logoHeight } = useTenant();
+    const { name, logo, logoWidth, logoHeight } = useTenant();
     const navigate = useNavigate();
 
     const [step, setStep] = useState<Step>("email");
@@ -114,7 +114,7 @@ export const ForgotPasswordForm = () => {
 
     const Logo = (
         <img
-            src={logoDark ?? logo}
+            src={logo}
             alt={name}
             style={{ width: logoWidth, height: logoHeight }}
             className="mb-10 object-contain"
