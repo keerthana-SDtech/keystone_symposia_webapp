@@ -51,8 +51,11 @@ export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageOptions
         fromStage:     editData.fromStage,
         toStage:       editData.toStage,
         statusActions: (editData.statusActions ?? []).map(a => ({
-          ...a,
-          isTerminal: a.isTerminal !== undefined ? a.isTerminal : a.toStageId === null,
+          actionCode:        a.actionCode,
+          label:             a.label ?? a.actionCode,
+          resultingStatusId: a.resultingStatusId ?? null,
+          toStageId:         a.toStageId ?? null,
+          isTerminal:        a.isTerminal !== undefined ? a.isTerminal : a.toStageId === null,
         })),
         allowedActions: editData.allowedActions,
         startDate:     editData.startDate ? editData.startDate.slice(0, 10) : "",
@@ -71,8 +74,8 @@ export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageOptions
 
   // Selected status names driving the action list
   const selectedStatusNames = form.statusActions.map(a => {
-    const status = statusOptions.find(s => s.id === a.statusId);
-    return status?.name ?? a.actionCode;
+    const status = statusOptions.find(s => s.id === a.resultingStatusId);
+    return status?.name ?? a.label ?? a.actionCode;
   });
 
   // When the MultiSelect changes, sync statusActions:
@@ -83,12 +86,13 @@ export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageOptions
       const next: StatusActionItem[] = selectedNames.map(name => {
         const status = statusOptions.find(s => s.name === name);
         const actionCode = name.toLowerCase().replace(/\s+/g, "_");
-        const existing = p.statusActions.find(a => a.statusId === status?.id || a.actionCode === actionCode);
+        const existing = p.statusActions.find(a => a.resultingStatusId === status?.id || a.actionCode === actionCode);
         return {
           actionCode,
-          statusId:   status?.id ?? null,
-          toStageId:  existing?.toStageId ?? null,
-          isTerminal: existing?.isTerminal ?? false,   // new actions default to non-terminal
+          label:             name,
+          resultingStatusId: status?.id ?? null,
+          toStageId:         existing?.toStageId ?? null,
+          isTerminal:        existing?.isTerminal ?? false,
         };
       });
       return { ...p, statusActions: next };
