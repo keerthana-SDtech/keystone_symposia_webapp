@@ -38,32 +38,35 @@ const EMPTY_FORM: FormState = {
   startDate: "", endDate: "", isFinalStage: false,
 };
 
+const buildFormFromEdit = (editData: Stage): FormState => ({
+  name:          editData.name,
+  description:   editData.description,
+  whoCanAdvance: editData.whoCanAdvance,
+  stageOrder:    editData.stageOrder,
+  fromStage:     editData.fromStage,
+  toStage:       editData.toStage,
+  statusActions: (editData.statusActions ?? []).map(a => ({
+    actionCode:        a.actionCode,
+    label:             a.label ?? a.actionCode,
+    resultingStatusId: a.resultingStatusId ?? null,
+    toStageId:         a.toStageId ?? null,
+    isTerminal:        a.isTerminal !== undefined ? a.isTerminal : a.toStageId === null,
+  })),
+  allowedActions: editData.allowedActions,
+  startDate:     editData.startDate ? editData.startDate.slice(0, 10) : "",
+  endDate:       editData.endDate   ? editData.endDate.slice(0, 10)   : "",
+  isFinalStage:  editData.isFinalStage ?? false,
+});
+
 export const AddStageDrawer = ({ isOpen, onClose, onSave, editData, stageOptions, statusOptions, roleOptions }: AddStageDrawerProps) => {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
 
-  useEffect(() => {
-    if (isOpen) {
-      setForm(editData ? {
-        name:          editData.name,
-        description:   editData.description,
-        whoCanAdvance: editData.whoCanAdvance,
-        stageOrder:    editData.stageOrder,
-        fromStage:     editData.fromStage,
-        toStage:       editData.toStage,
-        statusActions: (editData.statusActions ?? []).map(a => ({
-          actionCode:        a.actionCode,
-          label:             a.label ?? a.actionCode,
-          resultingStatusId: a.resultingStatusId ?? null,
-          toStageId:         a.toStageId ?? null,
-          isTerminal:        a.isTerminal !== undefined ? a.isTerminal : a.toStageId === null,
-        })),
-        allowedActions: editData.allowedActions,
-        startDate:     editData.startDate ? editData.startDate.slice(0, 10) : "",
-        endDate:       editData.endDate   ? editData.endDate.slice(0, 10)   : "",
-        isFinalStage:  editData.isFinalStage ?? false,
-      } : EMPTY_FORM);
-    }
-  }, [isOpen, editData]);
+  // Reset form when drawer opens — done during render to avoid setState-in-effect lint rule.
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    if (isOpen) setForm(editData ? buildFormFromEdit(editData) : EMPTY_FORM);
+  }
 
   useEffect(() => {
     if (!isOpen) return;
