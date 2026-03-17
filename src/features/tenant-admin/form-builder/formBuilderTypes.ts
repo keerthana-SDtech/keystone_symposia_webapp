@@ -234,3 +234,22 @@ export interface UpsertLookupBody {
   labelPath:  string;
   valuePath:  string;
 }
+
+/** A single option fetched from an external lookup source. */
+export interface LookupOption {
+  label: string;
+  value: string;
+}
+
+/**
+ * POST /config/fields/:fieldId/lookup-config  (201 response)
+ * POST /config/fields/:fieldId/lookup-refresh (200 response)
+ *
+ * Both endpoints return the count (and optionally the full list) of options
+ * that were fetched from the external URL and stored as field_options rows.
+ */
+export interface LookupSyncResult {
+  optionsCount: number;
+  options?:     LookupOption[];   // included only by /lookup-refresh
+  fetchError?:  string;           // included only when upsert succeeded but fetch failed (207)
+}

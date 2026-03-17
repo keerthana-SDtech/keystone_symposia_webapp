@@ -90,14 +90,16 @@ export const FormBuilderView = () => {
     }
   };
 
-  // ── duplicate (local only — no backend duplicate endpoint) ────────────────
+  // ── duplicate ─────────────────────────────────────────────────────────────
 
-  const handleDuplicate = (id: string) => {
-    const source = items.find(i => i.id === id);
-    if (!source) return;
-    const copy: FormBuilderItem = { ...source, id: Date.now().toString(), name: `${source.name} (copy)` };
-    setItems(prev => [...prev, copy]);
-    showToast("Form duplicated successfully");
+  const handleDuplicate = async (id: string) => {
+    try {
+      const copy = await formBuilderApi.duplicateForm(id);
+      setItems(prev => [...prev, copy]);
+      showToast("Form duplicated successfully");
+    } catch {
+      showToast("Failed to duplicate form.", true);
+    }
   };
 
   // ── navigation ────────────────────────────────────────────────────────────

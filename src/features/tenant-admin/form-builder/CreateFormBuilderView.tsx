@@ -18,7 +18,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft, ChevronUp, ChevronDown,
-  GripVertical, Copy, Trash2, MoreVertical, Pencil, Check, X,
+  GripVertical, Copy, Trash2, MoreVertical, Pencil, Check, X, RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/shared/Toggle";
@@ -130,14 +130,18 @@ const Dropdown = ({ options, value, placeholder, onChange, className = "" }:
 interface FieldCardProps {
   field:          FieldItem;
   showAssociation?: boolean;
+  isEdit?:        boolean;   // true when editing a saved form (enables Refresh Options)
   onChange:       (id: string, patch: Partial<FieldItem>) => void;
   onDupe:         (id: string) => void;
   onRemove:       (id: string) => void;
   onAddSection?:  (id: string) => void;
 }
 
-const FieldCard = ({ field, showAssociation = true, onChange, onDupe, onRemove, onAddSection }: FieldCardProps) => {
+const FieldCard = ({ field, showAssociation = true, isEdit = false, onChange, onDupe, onRemove, onAddSection }: FieldCardProps) => {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [syncState,  setSyncState]  = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [syncCount,  setSyncCount]  = useState<number | null>(null);
+  const [syncError,  setSyncError]  = useState<string>("");
   const moreRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!moreOpen) return;
@@ -378,6 +382,42 @@ const FieldCard = ({ field, showAssociation = true, onChange, onDupe, onRemove, 
             <label className={smLabelCls}>Value Path</label>
             <input type="text" value={field.lookupValuePath} onChange={e => ch({ lookupValuePath: e.target.value })} placeholder="Enter value path" className={inputCls} />
           </div>
+
+          {/* Sync status / refresh */}
+          <div className="flex items-center gap-3">
+            {isEdit ? (
+              <button
+                type="button"
+                disabled={syncState === "loading"}
+                onClick={async () => {
+                  setSyncState("loading");
+                  setSyncError("");
+                  try {
+                    const result = await formBuilderApi.refreshLookupOptions(field.id);
+                    setSyncCount(result.optionsCount);
+                    setSyncState("done");
+                  } catch {
+                    setSyncError("Failed to refresh options. Check the URL and paths.");
+                    setSyncState("error");
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncState === "loading" ? "animate-spin" : ""}`} />
+                {syncState === "loading" ? "Syncing…" : "Refresh Options"}
+              </button>
+            ) : (
+              <p className="text-[12px] text-gray-500">
+                Options will be fetched automatically when the form is saved.
+              </p>
+            )}
+            {syncState === "done" && syncCount !== null && (
+              <span className="text-[12px] text-green-600">{syncCount} option{syncCount !== 1 ? "s" : ""} synced</span>
+            )}
+            {syncState === "error" && (
+              <span className="text-[12px] text-red-500">{syncError}</span>
+            )}
+          </div>
         </div>
       )}
 
@@ -467,6 +507,7 @@ const FieldCard = ({ field, showAssociation = true, onChange, onDupe, onRemove, 
 
 interface SectionCardProps {
   section:       SectionItem;
+  isEdit?:       boolean;
   onTitleChange: (id: string, title: string) => void;
   onToggle:      (id: string) => void;
   onRemove:      (id: string) => void;
@@ -476,7 +517,7 @@ interface SectionCardProps {
   onFieldAdd:    (sectionId: string) => void;
 }
 
-const SectionCard = ({ section, onTitleChange, onToggle, onRemove, onFieldChange, onFieldDupe, onFieldRemove, onFieldAdd }: SectionCardProps) => {
+const SectionCard = ({ section, isEdit = false, onTitleChange, onToggle, onRemove, onFieldChange, onFieldDupe, onFieldRemove, onFieldAdd }: SectionCardProps) => {
   const [editing, setEditing]     = useState(false);
   const [draft,   setDraft]       = useState(section.title);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -518,7 +559,7 @@ const SectionCard = ({ section, onTitleChange, onToggle, onRemove, onFieldChange
       {!section.collapsed && (
         <div className="px-5 pb-5 flex flex-col gap-3">
           {section.fields.map(f => (
-            <FieldCard key={f.id} field={f} showAssociation
+            <FieldCard key={f.id} field={f} showAssociation isEdit={isEdit}
               onChange={(fid, patch) => onFieldChange(section.id, fid, patch)}
               onDupe={fid => onFieldDupe(section.id, fid)}
               onRemove={fid => onFieldRemove(section.id, fid)}
@@ -807,10 +848,10 @@ export const CreateFormBuilderView = ({
 
           {items.map(item =>
             item.kind === "field" ? (
-              <FieldCard key={item.id} field={item}
+              <FieldCard key={item.id} field={item} isEdit={isEdit}
                 onChange={handleFieldChange} onDupe={handleFieldDupe} onRemove={handleFieldRemove} onAddSection={handleAddSection} />
             ) : (
-              <SectionCard key={item.id} section={item}
+              <SectionCard key={item.id} section={item} isEdit={isEdit}
                 onTitleChange={handleSectionTitleChange} onToggle={handleSectionToggle} onRemove={handleSectionRemove}
                 onFieldChange={handleSectionFieldChange} onFieldDupe={handleSectionFieldDupe}
                 onFieldRemove={handleSectionFieldRemove} onFieldAdd={handleSectionFieldAdd} />

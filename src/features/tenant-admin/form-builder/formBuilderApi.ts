@@ -32,6 +32,8 @@ import type {
   CreateFieldBody,
   CreateOptionBody,
   UpsertLookupBody,
+  LookupOption,
+  LookupSyncResult,
 } from './formBuilderTypes';
 import type {
   FormBuilderItem,
@@ -90,6 +92,15 @@ async function deleteForm(id: string): Promise<void> {
 }
 
 /**
+ * Duplicate a form definition with all sections, fields, options, lookup configs and conditions.
+ * POST /config/form-definitions/:id/duplicate
+ */
+async function duplicateForm(id: string): Promise<FormBuilderItem> {
+  const { data } = await httpClient.post<ApiFormSummary>(`${BASE}/${id}/duplicate`);
+  return mapSummaryToListItem(data);
+}
+
+/**
  * Add a section to a form.
  * POST /config/form-definitions/:formId/sections
  */
@@ -125,10 +136,35 @@ async function createOption(fieldId: string, body: CreateOptionBody): Promise<vo
 
 /**
  * Create or replace the lookup config for a field.
+ * The backend immediately fetches the external URL and stores the results
+ * as field_options rows — end users see pre-stored values, no runtime fetch.
+ *
  * POST /config/fields/:fieldId/lookup-config
+ * → { config, optionsCount }           on success (201)
+ * → { config, optionsCount:0, fetchError } when config saved but URL fetch failed (207)
  */
-async function upsertLookupConfig(fieldId: string, body: UpsertLookupBody): Promise<void> {
-  await httpClient.post(`/config/fields/${fieldId}/lookup-config`, body);
+async function upsertLookupConfig(fieldId: string, body: UpsertLookupBody): Promise<LookupSyncResult> {
+  const { data } = await httpClient.post<LookupSyncResult>(
+    `/config/fields/${fieldId}/lookup-config`,
+    body,
+  );
+  return data;
+}
+
+/**
+ * Re-fetch the external URL for a field's lookup config and replace the
+ * stored field_options with the new results.
+ * Use this when the source data has changed and the admin wants to refresh
+ * the options without recreating the form.
+ *
+ * POST /config/fields/:fieldId/lookup-refresh
+ * → { optionsCount, options: [{ label, value }, ...] }
+ */
+export async function refreshLookupOptions(fieldId: string): Promise<LookupSyncResult> {
+  const { data } = await httpClient.post<LookupSyncResult>(
+    `/config/fields/${fieldId}/lookup-refresh`,
+  );
+  return data;
 }
 
 // ─── 5. ENTITY TYPE & STAGE CALLS ────────────────────────────────────────────
@@ -383,12 +419,19 @@ async function saveFieldsToSection(sectionId: string, fields: FieldItem[]): Prom
 
     // ── Lookup config ─────────────────────────────────────────────────────
     if (f.type === 'Look Up' && f.lookupUrlTemplate.trim()) {
-      await upsertLookupConfig(createdField.id, {
+      const syncResult = await upsertLookupConfig(createdField.id, {
         url:        f.lookupUrlTemplate,
         resultPath: f.lookupResultPath || '.',
         labelPath:  f.lookupLabelPath  || 'label',
         valuePath:  f.lookupValuePath  || 'value',
       });
+      // If the config saved but the URL fetch failed, throw so the caller
+      // (handleSave) can show the specific error in the toast.
+      if (syncResult.fetchError) {
+        throw new Error(
+          `Lookup field "${f.title || 'unnamed'}" config saved but options could not be fetched: ${syncResult.fetchError}`,
+        );
+      }
     }
   }
 }
@@ -642,10 +685,13 @@ export const formBuilderApi = {
   createForm,
   updateForm,
   deleteForm,
+  duplicateForm,
   toggleFormActive,
   // Compound save operations
   saveNewForm,
   saveEditForm,
+  // Lookup options management (tenant-admin)
+  refreshLookupOptions,
   // Entity type & stage lookups (for application form dropdowns)
   listEntityTypes,
   listStagesByEntityType,
