@@ -34,12 +34,15 @@ export const MODULE_OPTIONS = [
 ];
 
 export interface FormBuilderItem {
-  id:          string;
-  name:        string;
-  description: string;
-  module:      string;
-  enabled:     boolean;
-  type:        FormBuilderTab;
+  id:            string;
+  name:          string;
+  description:   string;
+  module:        string;
+  enabled:       boolean;
+  type:          FormBuilderTab;
+  // Set on application forms — used to pre-select dropdowns when editing
+  entityTypeId?: string | null;
+  stageId?:      string | null;
 }
 
 export const MOCK_FORM_BUILDER_ITEMS: FormBuilderItem[] = [

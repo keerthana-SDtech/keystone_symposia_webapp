@@ -9,6 +9,8 @@
  *                             API calls to persist a full form (definition +
  *                             sections + fields + options + lookup config).
  *  4. RESPONSE MAPPER       — ApiFormFull → FormBuilderItem + FormItem[].
+ *  5. ENTITY TYPE & STAGE   — listEntityTypes / listStagesByEntityType load the
+ *                             dynamic dropdown options for application forms.
  *
  * All functions are async/await. Errors propagate to the caller so the
  * component can decide how to surface them (toast, inline message, etc.).
@@ -20,6 +22,9 @@ import type {
   ApiFormSummary,
   ApiFormSection,
   ApiFormField,
+  ApiEntityType,
+  ApiWorkflowDefinition,
+  ApiWorkflowStage,
   BackendFieldType,
   CreateFormBody,
   UpdateFormBody,
@@ -124,6 +129,65 @@ async function createOption(fieldId: string, body: CreateOptionBody): Promise<vo
  */
 async function upsertLookupConfig(fieldId: string, body: UpsertLookupBody): Promise<void> {
   await httpClient.post(`/config/fields/${fieldId}/lookup-config`, body);
+}
+
+// ─── 5. ENTITY TYPE & STAGE CALLS ────────────────────────────────────────────
+
+/**
+ * Fetch all entity types configured for this tenant.
+ * Used to populate the Entity Type dropdown in the application form editor.
+ *
+ * GET /config/entity-types
+ * → [{ id, entityName, tableName, description }, ...]
+ */
+async function listEntityTypes(): Promise<ApiEntityType[]> {
+  const { data } = await httpClient.get<ApiEntityType[]>('/config/entity-types');
+  return data;
+}
+
+/**
+ * Fetch all workflow definitions.
+ * Used internally to resolve a workflow ID from an entity type ID.
+ *
+ * GET /config/workflow-definitions
+ */
+async function listWorkflowDefinitions(): Promise<ApiWorkflowDefinition[]> {
+  const { data } = await httpClient.get<ApiWorkflowDefinition[]>('/config/workflow-definitions');
+  return data;
+}
+
+/**
+ * Fetch the ordered stages for a given workflow.
+ *
+ * GET /config/workflow-definitions/:workflowId/stages
+ * → [{ id, workflowId, stageName, stageOrder, isFinalStage }, ...]
+ */
+async function listStagesByWorkflow(workflowId: string): Promise<ApiWorkflowStage[]> {
+  const { data } = await httpClient.get<ApiWorkflowStage[]>(
+    `/config/workflow-definitions/${workflowId}/stages`,
+  );
+  // Return sorted by stageOrder so the dropdown is always in order
+  return data.slice().sort((a, b) => a.stageOrder - b.stageOrder);
+}
+
+/**
+ * Compound helper: resolve the workflow that belongs to an entity type, then
+ * return its stages.  This is what the Stage dropdown calls when the Entity
+ * Type selection changes.
+ *
+ * Flow:
+ *   GET /config/workflow-definitions          ← all workflows
+ *   find first where entityTypeId === id
+ *   GET /config/workflow-definitions/:wfId/stages
+ *   → sorted ApiWorkflowStage[]
+ *
+ * Returns [] if no workflow is configured for that entity type yet.
+ */
+async function listStagesByEntityType(entityTypeId: string): Promise<ApiWorkflowStage[]> {
+  const workflows = await listWorkflowDefinitions();
+  const workflow  = workflows.find(w => w.entityTypeId === entityTypeId);
+  if (!workflow) return [];
+  return listStagesByWorkflow(workflow.id);
 }
 
 // ─── 2. FIELD-TYPE MAPPING ────────────────────────────────────────────────────
@@ -351,16 +415,26 @@ async function saveFieldsToSection(sectionId: string, fields: FieldItem[]): Prom
  *     → { id: "uuid-field-2", ... }
  */
 export async function saveNewForm(
-  details: { formName: string; description: string; module: string; enabled: boolean },
-  items:   FormItem[],
+  details: {
+    formName:     string;
+    description:  string;
+    module:       string;
+    enabled:      boolean;
+    entityTypeId: string;  // UUID — required for application forms
+    stageId:      string;  // UUID — which stage this form belongs to
+  },
+  items:    FormItem[],
   formType: FormBuilderTab,
 ): Promise<void> {
   const form = await createForm({
-    formName:  details.formName,
-    description: details.description || undefined,
-    module:    details.module   || undefined,
+    formName:     details.formName,
+    description:  details.description  || undefined,
+    module:       details.module       || undefined,
     formType,
-    isActive:  details.enabled,
+    isActive:     details.enabled,
+    // Only send entity/stage IDs when they are set (application forms)
+    entityTypeId: details.entityTypeId || undefined,
+    stageId:      details.stageId      || undefined,
   });
 
   await saveSectionsAndFields(form.id, items);
@@ -387,9 +461,16 @@ export async function saveNewForm(
  *   ...
  */
 export async function saveEditForm(
-  formId:   string,
-  details:  { formName: string; description: string; module: string; enabled: boolean },
-  items:    FormItem[],
+  formId:  string,
+  details: {
+    formName:     string;
+    description:  string;
+    module:       string;
+    enabled:      boolean;
+    entityTypeId: string;
+    stageId:      string;
+  },
+  items:   FormItem[],
 ): Promise<void> {
   // Fetch current form to get existing section IDs for deletion
   const current = await getForm(formId);
@@ -397,10 +478,12 @@ export async function saveEditForm(
   // Update metadata and delete all sections in parallel
   await Promise.all([
     updateForm(formId, {
-      formName:    details.formName,
-      description: details.description || undefined,
-      module:      details.module      || undefined,
-      isActive:    details.enabled,
+      formName:     details.formName,
+      description:  details.description  || undefined,
+      module:       details.module       || undefined,
+      isActive:     details.enabled,
+      entityTypeId: details.entityTypeId || undefined,
+      stageId:      details.stageId      || undefined,
     }),
     ...current.sections.map(s => deleteSection(s.id)),
   ]);
@@ -439,12 +522,15 @@ export { deleteForm };
  */
 export function mapSummaryToListItem(form: ApiFormSummary): FormBuilderItem {
   return {
-    id:          form.id,
-    name:        form.formName,
-    description: form.description ?? '',
-    module:      form.module      ?? '',
-    enabled:     form.isActive,
-    type:        form.formType as FormBuilderTab,
+    id:           form.id,
+    name:         form.formName,
+    description:  form.description ?? '',
+    module:       form.module      ?? '',
+    enabled:      form.isActive,
+    type:         form.formType as FormBuilderTab,
+    // Preserved so the edit page can pre-select the Entity Type and Stage dropdowns
+    entityTypeId: form.entityTypeId,
+    stageId:      form.stageId,
   };
 }
 
@@ -550,14 +636,20 @@ function mapApiFieldToUi(f: ApiFormField): FieldItem {
  *   const forms = await formBuilderApi.listForms();
  */
 export const formBuilderApi = {
+  // Form CRUD
   listForms,
   getForm,
   createForm,
   updateForm,
   deleteForm,
   toggleFormActive,
+  // Compound save operations
   saveNewForm,
   saveEditForm,
+  // Entity type & stage lookups (for application form dropdowns)
+  listEntityTypes,
+  listStagesByEntityType,
+  // Response mappers
   mapSummaryToListItem,
   mapApiFormToItems,
 };

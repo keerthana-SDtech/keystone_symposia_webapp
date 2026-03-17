@@ -36,11 +36,11 @@ import {
   type CheckboxValRow,
 } from "./formBuilderData";
 import { formBuilderApi } from "./formBuilderApi";
+import type { ApiEntityType, ApiWorkflowStage } from "./formBuilderTypes";
 
 // ── constants ──────────────────────────────────────────────────────────────
 
-const ENTITY_TYPE_OPTIONS   = ["Lorem Ipsum", "Concept", "Proposal", "Review", "User", "Tenant"];
-const STAGE_OPTIONS         = ["Concept Submission", "Concept Review", "Proposal Submission", "Proposal Review", "Finalization", "Archived"];
+// Entity types and stages are loaded from the API — see useEffect blocks below.
 const ADD_OPTIONS           = ["Field", "Section"];
 const FIELD_TYPES           = ["Text Field", "Text Area", "Radio Button", "Checkbox", "Dropdown - Single select", "Dropdown - Multi select", "Paragraph", "File Upload", "Look Up"];
 const TEXTAREA_VAL_TYPES    = ["Maximum character", "Minimum character"];
@@ -558,10 +558,27 @@ export const CreateFormBuilderView = ({
 
   const [description, setDescription] = useState(editData?.description ?? "");
   const [module,      setModule]      = useState(editData?.module      ?? "");
-  const [entityType,  setEntityType]  = useState("");
   const [version,     setVersion]     = useState("1");
-  const [stage,       setStage]       = useState("");
   const [enabled,     setEnabled]     = useState(editData?.enabled     ?? true);
+
+  // ── Entity Type state ──────────────────────────────────────────────────
+  // `entityType`   — display label bound to the Dropdown value prop
+  // `entityTypeId` — UUID sent to the API; initialised from editData on edit
+  const [entityTypeOptions, setEntityTypeOptions] = useState<ApiEntityType[]>([]);
+  const [entityType,        setEntityType]        = useState("");
+  const [entityTypeId,      setEntityTypeId]      = useState(editData?.entityTypeId ?? "");
+
+  // ── Stage state ────────────────────────────────────────────────────────
+  // Stages are dependent on the selected entity type.
+  // `stage`   — display label bound to the Dropdown value prop
+  // `stageId` — UUID sent to the API; initialised from editData on edit
+  const [stageOptions, setStageOptions] = useState<ApiWorkflowStage[]>([]);
+  const [stage,        setStage]        = useState("");
+  const [stageId,      setStageId]      = useState(editData?.stageId ?? "");
+
+  // Ref that captures the initial stageId for edit pre-selection. Cleared
+  // after first use so it does not interfere with user-driven entity type changes.
+  const initialStageIdRef = useRef(editData?.stageId ?? "");
 
   // API save state
   const [isSaving,  setIsSaving]  = useState(false);
@@ -581,7 +598,58 @@ export const CreateFormBuilderView = ({
     return () => document.removeEventListener("mousedown", h);
   }, [addOpen]);
 
-  const isValid = isApp ? !!formName && !!entityType && !!stage : !!formName && !!module;
+  // ── Load entity types (application forms only) ─────────────────────────
+  // Runs once on mount. After loading, pre-selects the display label if we
+  // are editing an existing form (editData.entityTypeId is already in state).
+  useEffect(() => {
+    if (!isApp) return;
+    let cancelled = false;
+
+    formBuilderApi.listEntityTypes().then(ets => {
+      if (cancelled) return;
+      setEntityTypeOptions(ets);
+
+      // Pre-select display label for the edit case
+      if (editData?.entityTypeId) {
+        const match = ets.find(e => e.id === editData.entityTypeId);
+        if (match) setEntityType(match.entityName);
+      }
+    }).catch(() => { /* silently ignore — dropdown will just be empty */ });
+
+    return () => { cancelled = true; };
+  }, [isApp]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Load stages whenever entity type changes ───────────────────────────
+  // Two triggers:
+  //   1. Initial mount with an existing entityTypeId (edit flow) — loads
+  //      stages and uses initialStageIdRef to pre-select the saved stage.
+  //   2. User picks a different entity type — loads fresh stage list;
+  //      initialStageIdRef is already cleared so no pre-selection occurs.
+  useEffect(() => {
+    if (!isApp || !entityTypeId) return;
+    let cancelled = false;
+
+    formBuilderApi.listStagesByEntityType(entityTypeId).then(stages => {
+      if (cancelled) return;
+      setStageOptions(stages);
+
+      // Pre-select the saved stage once (edit flow only)
+      const savedId = initialStageIdRef.current;
+      if (savedId) {
+        const match = stages.find(s => s.id === savedId);
+        if (match) { setStage(match.stageName); setStageId(match.id); }
+        initialStageIdRef.current = ""; // consume — never run again
+      }
+    }).catch(() => { /* silently ignore */ });
+
+    return () => { cancelled = true; };
+  }, [entityTypeId, isApp]);  
+
+  // For application forms, require real UUIDs (not just display labels) so we
+  // know the entity type and stage are properly linked to backend records.
+  const isValid = isApp
+    ? !!formName && !!entityTypeId && !!stageId
+    : !!formName && !!module;
 
   /**
    * Save handler — calls the appropriate API compound function, then
@@ -594,7 +662,7 @@ export const CreateFormBuilderView = ({
     if (!isValid || isSaving) return;
     setIsSaving(true);
 
-    const details = { formName, description, module, enabled };
+    const details = { formName, description, module, enabled, entityTypeId, stageId };
 
     try {
       if (isEdit && editData?.id) {
@@ -678,10 +746,44 @@ export const CreateFormBuilderView = ({
               <div className="px-6 py-6 flex flex-col gap-5">
                 {isApp ? (
                   <>
-                    <div><label className={labelCls}>Entity Type<span className="text-red-500 ml-0.5">*</span></label><Dropdown options={ENTITY_TYPE_OPTIONS} value={entityType} placeholder="Select entity type" onChange={setEntityType} /></div>
+                    {/* Entity Type — loaded from GET /config/entity-types */}
+                    <div>
+                      <label className={labelCls}>Entity Type<span className="text-red-500 ml-0.5">*</span></label>
+                      <Dropdown
+                        options={entityTypeOptions.map(et => et.entityName)}
+                        value={entityType}
+                        placeholder={entityTypeOptions.length === 0 ? "Loading..." : "Select entity type"}
+                        onChange={label => {
+                          // Update display label and UUID; also clear any previously
+                          // selected stage since it belongs to the old entity type
+                          setEntityType(label);
+                          setStage("");
+                          setStageId("");
+                          const match = entityTypeOptions.find(et => et.entityName === label);
+                          setEntityTypeId(match?.id ?? "");
+                        }}
+                      />
+                    </div>
                     <div><label className={labelCls}>Form Name<span className="text-red-500 ml-0.5">*</span></label><input type="text" value={formName} onChange={e => setFormName(e.target.value)} placeholder="Concept Submission" className={inputCls} /></div>
                     <div><label className={labelCls}>Version<span className="text-red-500 ml-0.5">*</span></label><input type="number" min={1} value={version} onChange={e => setVersion(e.target.value)} placeholder="1" className={inputCls} /></div>
-                    <div><label className={labelCls}>Stage<span className="text-red-500 ml-0.5">*</span></label><Dropdown options={STAGE_OPTIONS} value={stage} placeholder="Select stage" onChange={setStage} /></div>
+                    {/* Stage — loaded from GET /config/workflow-definitions/:id/stages
+                        after an entity type is selected; disabled until then */}
+                    <div>
+                      <label className={labelCls}>Stage<span className="text-red-500 ml-0.5">*</span></label>
+                      <Dropdown
+                        options={stageOptions.map(s => s.stageName)}
+                        value={stage}
+                        placeholder={
+                          !entityTypeId        ? "Select entity type first" :
+                          stageOptions.length === 0 ? "Loading stages..."   : "Select stage"
+                        }
+                        onChange={label => {
+                          setStage(label);
+                          const match = stageOptions.find(s => s.stageName === label);
+                          setStageId(match?.id ?? "");
+                        }}
+                      />
+                    </div>
                     <div className="flex items-center gap-2.5"><Toggle checked={enabled} onChange={() => setEnabled(p => !p)} /><span className="text-[14px] text-gray-700">Enable form</span></div>
                   </>
                 ) : (

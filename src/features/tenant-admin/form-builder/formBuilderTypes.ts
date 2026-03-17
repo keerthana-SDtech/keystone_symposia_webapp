@@ -18,6 +18,44 @@
  *   POST   /config/fields/:fieldId/lookup-config (upsert)
  */
 
+// ─── Lookup / reference types ─────────────────────────────────────────────────
+
+/**
+ * GET /config/entity-types
+ * Represents a domain object tracked by the platform (e.g. Concept, Proposal).
+ */
+export interface ApiEntityType {
+  id:          string;
+  entityName:  string;  // display label shown in the Entity Type dropdown
+  tableName:   string;
+  description: string | null;
+}
+
+/**
+ * GET /config/workflow-definitions
+ * A workflow belongs to one entity type and contains an ordered list of stages.
+ */
+export interface ApiWorkflowDefinition {
+  id:           string;
+  entityTypeId: string;
+  workflowName: string;
+  version:      number;
+  isActive:     boolean;
+  createdAt:    string;
+}
+
+/**
+ * GET /config/workflow-definitions/:workflowId/stages
+ * A single stage within a workflow (e.g. "Concept Submission", "Review").
+ */
+export interface ApiWorkflowStage {
+  id:           string;
+  workflowId:   string;
+  stageName:    string;   // display label shown in the Stage dropdown
+  stageOrder:   number;
+  isFinalStage: boolean;
+}
+
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
 /** fieldType values accepted by the backend. Maps 1-to-1 with DB enum. */
@@ -97,6 +135,7 @@ export interface ApiFormFull {
   id:           string;
   tenantId:     string;
   entityTypeId: string | null;
+  stageId:      string | null;  // FK → workflow_stages.id (null for admin forms)
   formName:     string;
   slug:         string | null;
   description:  string | null;
@@ -125,12 +164,13 @@ export type ApiFormSummary = Omit<ApiFormFull, 'sections'>;
  * Only formName is required; everything else is optional.
  */
 export interface CreateFormBody {
-  formName:     string;
-  description?: string;
-  module?:      string;
-  formType?:    'admin' | 'application';
-  isActive?:    boolean;
+  formName:      string;
+  description?:  string;
+  module?:       string;
+  formType?:     'admin' | 'application';
+  isActive?:     boolean;
   entityTypeId?: string;
+  stageId?:      string;  // which workflow stage this form belongs to
 }
 
 /**
@@ -138,11 +178,13 @@ export interface CreateFormBody {
  * All fields optional — only provided fields are updated.
  */
 export interface UpdateFormBody {
-  formName?:    string;
-  description?: string;
-  module?:      string;
-  formType?:    'admin' | 'application';
-  isActive?:    boolean;
+  formName?:     string;
+  description?:  string;
+  module?:       string;
+  formType?:     'admin' | 'application';
+  isActive?:     boolean;
+  entityTypeId?: string;
+  stageId?:      string;
 }
 
 /**
