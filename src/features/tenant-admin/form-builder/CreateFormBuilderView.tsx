@@ -1,17 +1,46 @@
+/**
+ * CreateFormBuilderView.tsx
+ *
+ * API integration points (no UI changes):
+ *   • `initialItems` prop   — seeds the items list when editing an existing form
+ *                             (populated by EditFormBuilderPage via API fetch).
+ *   • `handleSave`          — replaced with an async function that calls either
+ *                             formBuilderApi.saveNewForm (create) or
+ *                             formBuilderApi.saveEditForm (edit).
+ *   • `isSaving` state      — disables the Save button during the API call.
+ *   • Toast                 — shows success / error feedback after save.
+ *
+ * FormItem / FieldItem / SectionItem types are now imported from formBuilderData
+ * (shared with the API mapper) instead of being locally defined here.
+ */
+
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronLeft, ChevronUp, ChevronDown,
-  GripVertical, Copy, Trash2, MoreVertical, Pencil, Check, X,
+  GripVertical, Copy, Trash2, MoreVertical, Pencil, Check, X, RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Toggle } from "@/components/shared/Toggle";
-import { MODULE_OPTIONS, type FormBuilderItem, type FormBuilderTab } from "./formBuilderData";
+import { Toast } from "@/components/ui/toast";
+import {
+  MODULE_OPTIONS,
+  type FormBuilderItem,
+  type FormBuilderTab,
+  // UI-level form-item types (moved to formBuilderData for shared use)
+  type FormItem,
+  type FieldItem,
+  type SectionItem,
+  type FieldOption,
+  type ParaValidationRow,
+  type CheckboxValRow,
+} from "./formBuilderData";
+import { formBuilderApi } from "./formBuilderApi";
+import type { ApiEntityType, ApiWorkflowStage } from "./formBuilderTypes";
 
 // ── constants ──────────────────────────────────────────────────────────────
 
-const ENTITY_TYPE_OPTIONS   = ["Lorem Ipsum", "Concept", "Proposal", "Review", "User", "Tenant"];
-const STAGE_OPTIONS         = ["Concept Submission", "Concept Review", "Proposal Submission", "Proposal Review", "Finalization", "Archived"];
+// Entity types and stages are loaded from the API — see useEffect blocks below.
 const ADD_OPTIONS           = ["Field", "Section"];
 const FIELD_TYPES           = ["Text Field", "Text Area", "Radio Button", "Checkbox", "Dropdown - Single select", "Dropdown - Multi select", "Paragraph", "File Upload", "Look Up"];
 const TEXTAREA_VAL_TYPES    = ["Maximum character", "Minimum character"];
@@ -30,47 +59,7 @@ const smLabelCls  = "text-[13px] font-medium text-gray-700 mb-1.5 block";
 
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 
-// ── types ──────────────────────────────────────────────────────────────────
-
-interface ParaValidationRow   { id: string; type: string; minValue: string; maxValue: string; }
-interface CheckboxValRow      { id: string; type: string; number: string; customError: string; }
-
-interface FieldOption { text: string; goTo: string; }
-
-interface FieldItem {
-  kind:              "field";
-  id:                string;
-  title:             string;
-  type:              string;
-  options:           FieldOption[];
-  showGoToField:     boolean;
-  required:          boolean;
-  fieldAssociation:  boolean;
-  associatedField:   string;
-  // validation (Text Field / Text Area / File Upload)
-  showValidation:    boolean;
-  validationMessage: string;
-  // Paragraph validation rows
-  paraValidations:   ParaValidationRow[];
-  // Checkbox / Multi-select validation rows
-  cbValidations:     CheckboxValRow[];
-  // Look Up
-  lookupName:        string;
-  lookupUrlTemplate: string;
-  lookupResultPath:  string;
-  lookupLabelPath:   string;
-  lookupValuePath:   string;
-}
-
-interface SectionItem {
-  kind:      "section";
-  id:        string;
-  title:     string;
-  collapsed: boolean;
-  fields:    FieldItem[];
-}
-
-type FormItem = FieldItem | SectionItem;
+// ── factory helpers ────────────────────────────────────────────────────────
 
 const makeField = (): FieldItem => ({
   kind: "field", id: uid(),
@@ -141,14 +130,18 @@ const Dropdown = ({ options, value, placeholder, onChange, className = "" }:
 interface FieldCardProps {
   field:          FieldItem;
   showAssociation?: boolean;
+  isEdit?:        boolean;   // true when editing a saved form (enables Refresh Options)
   onChange:       (id: string, patch: Partial<FieldItem>) => void;
   onDupe:         (id: string) => void;
   onRemove:       (id: string) => void;
   onAddSection?:  (id: string) => void;
 }
 
-const FieldCard = ({ field, showAssociation = true, onChange, onDupe, onRemove, onAddSection }: FieldCardProps) => {
+const FieldCard = ({ field, showAssociation = true, isEdit = false, onChange, onDupe, onRemove, onAddSection }: FieldCardProps) => {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [syncState,  setSyncState]  = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [syncCount,  setSyncCount]  = useState<number | null>(null);
+  const [syncError,  setSyncError]  = useState<string>("");
   const moreRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!moreOpen) return;
@@ -389,6 +382,42 @@ const FieldCard = ({ field, showAssociation = true, onChange, onDupe, onRemove, 
             <label className={smLabelCls}>Value Path</label>
             <input type="text" value={field.lookupValuePath} onChange={e => ch({ lookupValuePath: e.target.value })} placeholder="Enter value path" className={inputCls} />
           </div>
+
+          {/* Sync status / refresh */}
+          <div className="flex items-center gap-3">
+            {isEdit ? (
+              <button
+                type="button"
+                disabled={syncState === "loading"}
+                onClick={async () => {
+                  setSyncState("loading");
+                  setSyncError("");
+                  try {
+                    const result = await formBuilderApi.refreshLookupOptions(field.id);
+                    setSyncCount(result.optionsCount);
+                    setSyncState("done");
+                  } catch {
+                    setSyncError("Failed to refresh options. Check the URL and paths.");
+                    setSyncState("error");
+                  }
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-md border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition-colors"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${syncState === "loading" ? "animate-spin" : ""}`} />
+                {syncState === "loading" ? "Syncing…" : "Refresh Options"}
+              </button>
+            ) : (
+              <p className="text-[12px] text-gray-500">
+                Options will be fetched automatically when the form is saved.
+              </p>
+            )}
+            {syncState === "done" && syncCount !== null && (
+              <span className="text-[12px] text-green-600">{syncCount} option{syncCount !== 1 ? "s" : ""} synced</span>
+            )}
+            {syncState === "error" && (
+              <span className="text-[12px] text-red-500">{syncError}</span>
+            )}
+          </div>
         </div>
       )}
 
@@ -478,6 +507,7 @@ const FieldCard = ({ field, showAssociation = true, onChange, onDupe, onRemove, 
 
 interface SectionCardProps {
   section:       SectionItem;
+  isEdit?:       boolean;
   onTitleChange: (id: string, title: string) => void;
   onToggle:      (id: string) => void;
   onRemove:      (id: string) => void;
@@ -487,7 +517,7 @@ interface SectionCardProps {
   onFieldAdd:    (sectionId: string) => void;
 }
 
-const SectionCard = ({ section, onTitleChange, onToggle, onRemove, onFieldChange, onFieldDupe, onFieldRemove, onFieldAdd }: SectionCardProps) => {
+const SectionCard = ({ section, isEdit = false, onTitleChange, onToggle, onRemove, onFieldChange, onFieldDupe, onFieldRemove, onFieldAdd }: SectionCardProps) => {
   const [editing, setEditing]     = useState(false);
   const [draft,   setDraft]       = useState(section.title);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -529,7 +559,7 @@ const SectionCard = ({ section, onTitleChange, onToggle, onRemove, onFieldChange
       {!section.collapsed && (
         <div className="px-5 pb-5 flex flex-col gap-3">
           {section.fields.map(f => (
-            <FieldCard key={f.id} field={f} showAssociation
+            <FieldCard key={f.id} field={f} showAssociation isEdit={isEdit}
               onChange={(fid, patch) => onFieldChange(section.id, fid, patch)}
               onDupe={fid => onFieldDupe(section.id, fid)}
               onRemove={fid => onFieldRemove(section.id, fid)}
@@ -550,9 +580,12 @@ const SectionCard = ({ section, onTitleChange, onToggle, onRemove, onFieldChange
 export const CreateFormBuilderView = ({
   formType,
   editData,
+  initialItems,
 }: {
-  formType: FormBuilderTab;
-  editData?: FormBuilderItem;
+  formType:      FormBuilderTab;
+  editData?:     FormBuilderItem;
+  /** Pre-populated form items when editing an existing form (loaded from API). */
+  initialItems?: FormItem[];
 }) => {
   const navigate = useNavigate();
   const isApp  = formType === "application";
@@ -560,16 +593,44 @@ export const CreateFormBuilderView = ({
 
   const [basicOpen,   setBasicOpen]   = useState(true);
   const [formName,    setFormName]    = useState(editData?.name        ?? "");
-  const [items,       setItems]       = useState<FormItem[]>([]);
+  const [items,       setItems]       = useState<FormItem[]>(() => initialItems ?? []);
   const [addOpen,     setAddOpen]     = useState(false);
   const addRef = useRef<HTMLDivElement>(null);
 
   const [description, setDescription] = useState(editData?.description ?? "");
   const [module,      setModule]      = useState(editData?.module      ?? "");
-  const [entityType,  setEntityType]  = useState("");
   const [version,     setVersion]     = useState("1");
-  const [stage,       setStage]       = useState("");
   const [enabled,     setEnabled]     = useState(editData?.enabled     ?? true);
+
+  // ── Entity Type state ──────────────────────────────────────────────────
+  // `entityType`   — display label bound to the Dropdown value prop
+  // `entityTypeId` — UUID sent to the API; initialised from editData on edit
+  const [entityTypeOptions, setEntityTypeOptions] = useState<ApiEntityType[]>([]);
+  const [entityType,        setEntityType]        = useState("");
+  const [entityTypeId,      setEntityTypeId]      = useState(editData?.entityTypeId ?? "");
+
+  // ── Stage state ────────────────────────────────────────────────────────
+  // Stages are dependent on the selected entity type.
+  // `stage`   — display label bound to the Dropdown value prop
+  // `stageId` — UUID sent to the API; initialised from editData on edit
+  const [stageOptions, setStageOptions] = useState<ApiWorkflowStage[]>([]);
+  const [stage,        setStage]        = useState("");
+  const [stageId,      setStageId]      = useState(editData?.stageId ?? "");
+
+  // Ref that captures the initial stageId for edit pre-selection. Cleared
+  // after first use so it does not interfere with user-driven entity type changes.
+  const initialStageIdRef = useRef(editData?.stageId ?? "");
+
+  // API save state
+  const [isSaving,  setIsSaving]  = useState(false);
+  const [saveToast, setSaveToast] = useState<{ visible: boolean; message: string; error?: boolean }>({
+    visible: false, message: "",
+  });
+
+  const showSaveToast = (message: string, error = false) => {
+    setSaveToast({ visible: true, message, error });
+    setTimeout(() => setSaveToast({ visible: false, message: "" }), 4000);
+  };
 
   useEffect(() => {
     if (!addOpen) return;
@@ -578,8 +639,86 @@ export const CreateFormBuilderView = ({
     return () => document.removeEventListener("mousedown", h);
   }, [addOpen]);
 
-  const isValid = isApp ? !!formName && !!entityType && !!stage : !!formName && !!module;
-  const handleSave = () => { if (!isValid) return; navigate("/tenant-admin/form-builder"); };
+  // ── Load entity types (application forms only) ─────────────────────────
+  // Runs once on mount. After loading, pre-selects the display label if we
+  // are editing an existing form (editData.entityTypeId is already in state).
+  useEffect(() => {
+    if (!isApp) return;
+    let cancelled = false;
+
+    formBuilderApi.listEntityTypes().then(ets => {
+      if (cancelled) return;
+      setEntityTypeOptions(ets);
+
+      // Pre-select display label for the edit case
+      if (editData?.entityTypeId) {
+        const match = ets.find(e => e.id === editData.entityTypeId);
+        if (match) setEntityType(match.entityName);
+      }
+    }).catch(() => { /* silently ignore — dropdown will just be empty */ });
+
+    return () => { cancelled = true; };
+  }, [isApp]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Load stages whenever entity type changes ───────────────────────────
+  // Two triggers:
+  //   1. Initial mount with an existing entityTypeId (edit flow) — loads
+  //      stages and uses initialStageIdRef to pre-select the saved stage.
+  //   2. User picks a different entity type — loads fresh stage list;
+  //      initialStageIdRef is already cleared so no pre-selection occurs.
+  useEffect(() => {
+    if (!isApp || !entityTypeId) return;
+    let cancelled = false;
+
+    formBuilderApi.listStagesByEntityType(entityTypeId).then(stages => {
+      if (cancelled) return;
+      setStageOptions(stages);
+
+      // Pre-select the saved stage once (edit flow only)
+      const savedId = initialStageIdRef.current;
+      if (savedId) {
+        const match = stages.find(s => s.id === savedId);
+        if (match) { setStage(match.stageName); setStageId(match.id); }
+        initialStageIdRef.current = ""; // consume — never run again
+      }
+    }).catch(() => { /* silently ignore */ });
+
+    return () => { cancelled = true; };
+  }, [entityTypeId, isApp]);  
+
+  // For application forms, require real UUIDs (not just display labels) so we
+  // know the entity type and stage are properly linked to backend records.
+  const isValid = isApp
+    ? !!formName && !!entityTypeId && !!stageId
+    : !!formName && !!module;
+
+  /**
+   * Save handler — calls the appropriate API compound function, then
+   * navigates back to the list on success.
+   *
+   * For create: POST form-definition → POST sections → POST fields → POST options
+   * For edit:   GET current form → PUT metadata + DELETE sections (parallel) → re-create
+   */
+  const handleSave = async () => {
+    if (!isValid || isSaving) return;
+    setIsSaving(true);
+
+    const details = { formName, description, module, enabled, entityTypeId, stageId };
+
+    try {
+      if (isEdit && editData?.id) {
+        await formBuilderApi.saveEditForm(editData.id, details, items);
+      } else {
+        await formBuilderApi.saveNewForm(details, items, formType);
+      }
+      navigate("/tenant-admin/form-builder");
+    } catch (err) {
+      console.error("[FormBuilder] Save failed:", err);
+      showSaveToast("Failed to save form. Please try again.", true);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleAdd = (type: string) => { setAddOpen(false); setItems(prev => [...prev, type === "Section" ? makeSection() : makeField()]); };
 
@@ -631,7 +770,7 @@ export const CreateFormBuilderView = ({
           </div>
           <p className="text-[13px] text-gray-500 ml-7">Provide review about the proposed concept. All fields marked with * are required.</p>
         </div>
-        <Button onClick={handleSave} disabled={!isValid} className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 text-[14px] font-medium disabled:opacity-50">Save</Button>
+        <Button onClick={handleSave} disabled={!isValid || isSaving} className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 text-[14px] font-medium disabled:opacity-50">Save</Button>
       </div>
 
       {/* Content */}
@@ -648,10 +787,44 @@ export const CreateFormBuilderView = ({
               <div className="px-6 py-6 flex flex-col gap-5">
                 {isApp ? (
                   <>
-                    <div><label className={labelCls}>Entity Type<span className="text-red-500 ml-0.5">*</span></label><Dropdown options={ENTITY_TYPE_OPTIONS} value={entityType} placeholder="Select entity type" onChange={setEntityType} /></div>
+                    {/* Entity Type — loaded from GET /config/entity-types */}
+                    <div>
+                      <label className={labelCls}>Entity Type<span className="text-red-500 ml-0.5">*</span></label>
+                      <Dropdown
+                        options={entityTypeOptions.map(et => et.entityName)}
+                        value={entityType}
+                        placeholder={entityTypeOptions.length === 0 ? "Loading..." : "Select entity type"}
+                        onChange={label => {
+                          // Update display label and UUID; also clear any previously
+                          // selected stage since it belongs to the old entity type
+                          setEntityType(label);
+                          setStage("");
+                          setStageId("");
+                          const match = entityTypeOptions.find(et => et.entityName === label);
+                          setEntityTypeId(match?.id ?? "");
+                        }}
+                      />
+                    </div>
                     <div><label className={labelCls}>Form Name<span className="text-red-500 ml-0.5">*</span></label><input type="text" value={formName} onChange={e => setFormName(e.target.value)} placeholder="Concept Submission" className={inputCls} /></div>
                     <div><label className={labelCls}>Version<span className="text-red-500 ml-0.5">*</span></label><input type="number" min={1} value={version} onChange={e => setVersion(e.target.value)} placeholder="1" className={inputCls} /></div>
-                    <div><label className={labelCls}>Stage<span className="text-red-500 ml-0.5">*</span></label><Dropdown options={STAGE_OPTIONS} value={stage} placeholder="Select stage" onChange={setStage} /></div>
+                    {/* Stage — loaded from GET /config/workflow-definitions/:id/stages
+                        after an entity type is selected; disabled until then */}
+                    <div>
+                      <label className={labelCls}>Stage<span className="text-red-500 ml-0.5">*</span></label>
+                      <Dropdown
+                        options={stageOptions.map(s => s.stageName)}
+                        value={stage}
+                        placeholder={
+                          !entityTypeId        ? "Select entity type first" :
+                          stageOptions.length === 0 ? "Loading stages..."   : "Select stage"
+                        }
+                        onChange={label => {
+                          setStage(label);
+                          const match = stageOptions.find(s => s.stageName === label);
+                          setStageId(match?.id ?? "");
+                        }}
+                      />
+                    </div>
                     <div className="flex items-center gap-2.5"><Toggle checked={enabled} onChange={() => setEnabled(p => !p)} /><span className="text-[14px] text-gray-700">Enable form</span></div>
                   </>
                 ) : (
@@ -675,10 +848,10 @@ export const CreateFormBuilderView = ({
 
           {items.map(item =>
             item.kind === "field" ? (
-              <FieldCard key={item.id} field={item}
+              <FieldCard key={item.id} field={item} isEdit={isEdit}
                 onChange={handleFieldChange} onDupe={handleFieldDupe} onRemove={handleFieldRemove} onAddSection={handleAddSection} />
             ) : (
-              <SectionCard key={item.id} section={item}
+              <SectionCard key={item.id} section={item} isEdit={isEdit}
                 onTitleChange={handleSectionTitleChange} onToggle={handleSectionToggle} onRemove={handleSectionRemove}
                 onFieldChange={handleSectionFieldChange} onFieldDupe={handleSectionFieldDupe}
                 onFieldRemove={handleSectionFieldRemove} onFieldAdd={handleSectionFieldAdd} />
@@ -705,8 +878,16 @@ export const CreateFormBuilderView = ({
       {/* Bottom bar */}
       <div className="fixed bottom-0 right-0 left-[260px] bg-white border-t border-gray-200 px-8 py-4 flex items-center justify-end gap-3 z-30">
         <Button variant="outline" onClick={() => navigate("/tenant-admin/form-builder")} className="px-6 py-2.5 text-[14px] border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</Button>
-        <Button onClick={handleSave} disabled={!isValid} className="px-6 py-2.5 text-[14px] bg-primary hover:bg-primary/90 text-white disabled:opacity-50">Save</Button>
+        <Button onClick={handleSave} disabled={!isValid || isSaving} className="px-6 py-2.5 text-[14px] bg-primary hover:bg-primary/90 text-white disabled:opacity-50">Save</Button>
       </div>
+
+      {/* Save feedback toast (fixed overlay — no layout impact) */}
+      <Toast
+        message={saveToast.message}
+        variant={saveToast.error ? "error" : "success"}
+        visible={saveToast.visible}
+        onClose={() => setSaveToast(prev => ({ ...prev, visible: false }))}
+      />
     </div>
   );
 };
